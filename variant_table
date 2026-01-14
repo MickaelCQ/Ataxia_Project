@@ -1,0 +1,68 @@
+                                                                        /* Mickael Coquerelle -- CHU Nimes -- 12/01/2026 -- TABLEAU VARIANT(S) -- CONCLUSION(S) ATAXIE*/
+
+/* Déclarations */
+STRING sTB, sHd, sVName, sClass, sRef, Al1, Al2;
+INTEGER iHead, iBody;
+LOCUSRESULT cLocRes;
+
+STRING htS,htE,heS,heE, pS, pE, bdS, bdE, sFormA;
+
+htS := "<html>"; htE := "</html>";
+heS := "<head>"; heE := "</head>";
+pS := "<p>";    pE := "</p>";
+bdS := "<body>"; bdE := "</body>";
+
+iHead := 1; 
+iBody := 1;
+sFormA := "<font style=""font-family: 'Arial';font-style: Normal;font-weight: normal;font-size: 13px;"">";
+
+sTB :=  htS + heS;
+sTB := sTB + "<meta http-equiv=""Content-Type"" content=""text/html; charset=iso-8859-1"" />" + heE + bdS;
+
+sTB := sTB + "<p style=""text-align:center; background-color:#eeeeee; ";
+sTB := sTB + "border:2px solid black; font-weight:bold;"">" + "Variants identifiés" + pE;
+
+sTB := sTB + "<table border=""3"" ";
+sTB := sTB + "style=""border-collapse:collapse; margin-left:auto; margin-right:auto; text-align:center;"">";
+
+
+/* EN-TÊTES */
+sHd := "Locus-Allèle 1-Allèle 2-Pathogénicité-Référence";
+sTB := sTB + "<tr>";
+
+WHILE NumEntries(sHd,"-") >= iHead DO
+   sTB := sTB +  "<td style=""background-color:#f2f2f2;""><b><center>" + Entry(iHead,sHd,"-") + "</center></b></td>";
+   iHead := iHead + 1;
+DONE;
+
+sTB := sTB + "</tr>";
+
+/* DONNÉES */
+
+cLocRes := .ApproachActivity().Approach.GetLocusResult(?, ?, ?, iBody);
+
+WHILE cLocRes <> ? DO
+   
+   sVName := cLocRes.TestedLocus.Name;
+    
+   Al1 := "Allèle 1";
+   Al2 := "Allèle 2";
+   sClass := "Classe";
+   sRef := "Ref";
+
+   sTB := sTB + "<tr>";
+   sTB := sTB + "<td>" + sFormA + sVName + "</font></td>";
+   sTB := sTB + "<td>" + sFormA + Al1 + "</font></td>";
+   sTB := sTB + "<td>" + sFormA + Al2 + "</font></td>";
+   sTB := sTB + "<td>" + sFormA + sClass + "</font></td>";
+   sTB := sTB + "<td>" + sFormA + sRef + "</font></td>";
+   sTB := sTB + "</tr>";
+
+   iBody := iBody + 1;
+   cLocRes := .ApproachActivity().Approach.GetLocusResult(?, ?, ?, iBody);
+
+DONE;
+
+RETURN sTB + "</table></body>"+ htE;
+
+
