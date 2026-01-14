@@ -1,61 +1,85 @@
                                                                         /* Mickael Coquerelle -- CHU Nimes -- 12/01/2026 -- TABLEAU VARIANT(S) -- CONCLUSION(S) ATAXIE*/
 
-/* Déclarations */
-STRING sTB, sHd, sVName, sClass, sRef, Al1, Al2;
-INTEGER iHead, iBody;
+STRING sTB, sHd, sVName, sClass, sRef, sAl1, sAl2,sHch, sMot1, sMot2, sExp1, sExp2, ExpAl1,ExpAl2,sTable;
+INTEGER iHd, iBody;
 LOCUSRESULT cLocRes;
 
-STRING htS,htE,heS,heE, pS, pE, bdS, bdE, sFormA;
+STRING htS,htE,heS,heE, pS, pE, bdS, bdE,bS, bE, tdS, tdE, ftE, sFormA;
 
-htS := "<html>"; htE := "</html>";
-heS := "<head>"; heE := "</head>";
-pS := "<p>";    pE := "</p>";
+htS := "<html>"; htE := "</html>"; heS := "<head>"; heE := "</head>";
+pS := "<p>";     pE := "</p>"; 
 bdS := "<body>"; bdE := "</body>";
+bS := "<b>";     bE := "</b>"; 
+tdS:= "<td>";    tdE := "</td>";
+ftE := "</font>";
 
-iHead := 1; 
-iBody := 1;
+iHd := 1; iBody := 1;
 sFormA := "<font style=""font-family: 'Arial';font-style: Normal;font-weight: normal;font-size: 13px;"">";
 
-sTB :=  htS + heS;
-sTB := sTB + "<meta http-equiv=""Content-Type"" content=""text/html; charset=iso-8859-1"" />" + heE + bdS;
-
+sTB :=  htS + heS + "<meta http-equiv=""Content-Type"" content=""text/html; charset=iso-8859-1"" />" + heE + bdS;
 sTB := sTB + "<p style=""text-align:center; background-color:#eeeeee; ";
 sTB := sTB + "border:2px solid black; font-weight:bold;"">" + "Variants identifiés" + pE;
 
-sTB := sTB + "<table border=""3"" ";
-sTB := sTB + "style=""border-collapse:collapse; margin-left:auto; margin-right:auto; text-align:center;"">";
+sTB := sTB + "<table border=""3"" "+ "style=""border-collapse:collapse; margin-left:auto; margin-right:auto; text-align:center;"">";
 
-
-/* EN-TÊTES */
 sHd := "Locus-Allèle 1-Allèle 2-Pathogénicité-Référence";
 sTB := sTB + "<tr>";
 
-WHILE NumEntries(sHd,"-") >= iHead DO
-   sTB := sTB +  "<td style=""background-color:#f2f2f2;""><b><center>" + Entry(iHead,sHd,"-") + "</center></b></td>";
-   iHead := iHead + 1;
+WHILE NumEntries(sHd,"-") >= iHd DO
+   sTB := sTB +  "<td style=""background-color:#f2f2f2;""><b><center>" + "  " +Entry(iHd,sHd,"-") + "  " + "</center></b></td>";
+   iHd := iHd + 1;
 DONE;
 
 sTB := sTB + "</tr>";
-
-/* DONNÉES */
-
 cLocRes := .ApproachActivity().Approach.GetLocusResult(?, ?, ?, iBody);
 
 WHILE cLocRes <> ? DO
-   
-   sVName := cLocRes.TestedLocus.Name;
-    
-   Al1 := "Allèle 1";
-   Al2 := "Allèle 2";
-   sClass := "Classe";
-   sRef := "Ref";
 
+   sVName := cLocRes.TestedLocus.Name;
+
+   /* Récupération sécurisée */
+   sAl1   := IfKnownString(cLocRes.GetGeneticResultDetail("Motif_A1", ?).Value);
+   sAl2   := IfKnownString(cLocRes.GetGeneticResultDetail("Motif_A2", ?).Value);
+   ExpAl1 := IfKnownString(cLocRes.GetGeneticResultDetail("AL1", ?).Value);
+   ExpAl2 := IfKnownString(cLocRes.GetGeneticResultDetail("AL2", ?).Value);
+
+   /* Motifs par défaut selon le locus */
+   IF sVName = "FGF14" THEN
+      sMot1 := "GAA"; sMot2 := "GAA";
+   ELSE
+      IF sVName = "TBP" OR sVName = "ATXN1" OR sVName = "ATXN2" OR sVName = "ATXN3" OR sVName = "CACNA1A" OR sVName = "ATXN7" THEN
+         sMot1 := "CAG"; sMot2 := "CAG";
+      ELSE
+         IF sVName = "FMR1" THEN
+            sMot1 := "CCG"; sMot2 := "CCG";
+         ELSE
+            IF sVName = "FXN" THEN
+               sMot1 := "GAA"; sMot2 := "GAA";
+            ELSE
+               IF sVName = "RFC1" THEN
+      
+                /* Cas particulier : motifs variables */
+                sMot1 := sAl1;
+                sMot2 := sAl2;
+                ELSE
+               /* Sécurité*/
+                sMot1 := "?"; sMot2 := "?";
+               ENDIF;
+            ENDIF;
+          ENDIF;
+        ENDIF;
+    ENDIF;
+      
+   /* Expansions */
+   sExp1 := ExpAl1;sExp2 := ExpAl2;
+
+   /* Génération HTML */
    sTB := sTB + "<tr>";
-   sTB := sTB + "<td>" + sFormA + sVName + "</font></td>";
-   sTB := sTB + "<td>" + sFormA + Al1 + "</font></td>";
-   sTB := sTB + "<td>" + sFormA + Al2 + "</font></td>";
-   sTB := sTB + "<td>" + sFormA + sClass + "</font></td>";
-   sTB := sTB + "<td>" + sFormA + sRef + "</font></td>";
+   sTB := sTB + tdS + sFormA + "<i>" + sVName + "</i>" + ftE + tdE;
+   sTB := sTB + tdS + sFormA + sMot1 + chr(13) + "(" + sExp1 + ")"  + ftE + tdE;
+   sTB := sTB + tdS + sFormA + sMot2  +chr(13) + "(" + sExp2 + ")"  + ftE + tdE;
+   sTB := sTB + tdS + sFormA + "A Dev"  + ftE + tdE;
+   sTB := sTB + tdS + sFormA + "A Dev"  + ftE + tdE;
    sTB := sTB + "</tr>";
 
    iBody := iBody + 1;
@@ -63,6 +87,8 @@ WHILE cLocRes <> ? DO
 
 DONE;
 
-RETURN sTB + "</table></body>"+ htE;
+
+
+RETURN sTB + "</table>"+ bdE+ htE;
 
 
