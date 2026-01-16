@@ -1,12 +1,14 @@
-{:/* Mickael Coquerelle -- CHU Nimes -- 12/01/2026 TABLEAU VARIANT(S) -- CONCLUSION(S) ATAXIE*/
+{:/* CQM--CHU NIMES -- 12/01/2026 TABLEAU VARIANT(S) -- CONCLUSION(S) ATAXIE*/
 
 STRING sTB, sHd;
 STRING sVName, sClass, sRef;
 STRING sAl1, sAl2, sMot1, sMot2;
 STRING sExp1, sExp2, ExpAl1, ExpAl2;
-STRING sPhysio, sExp1Str, sExp2Str;
+STRING sPhysio, seuilP, Interrup;
+STRING RFC1c1, RFC1c2, RFC1c3, RFC1c4, RFC1c5, sRef1, sRef2;
+INTEGER iClass0, iClass1, iClass2;
+INTEGER iHd, iBody,iExp1, iExp2, iSeuil;
 
-INTEGER iHd, iBody,iExp1, iExp2;
 LOCUSRESULT cLocRes;
 
 /* html*/
@@ -15,32 +17,39 @@ STRING tdS, tdE;
 STRING tdStyle, thStyle, pStyle;
 
 /* Style commun à toutes les cellules */
-tdStyle := "padding:6px 10px;" + "vertical-align:middle;" + "font-family:Arial;" + "font-size:13px;" + "font-style:normal;" + "font-weight:normal;" + "text-align:center;";
+tdStyle := "padding:6px 10px;" + "vertical-align:middle;" + "font-family:Arial;" + "font-size:10px;" + "font-style:normal;" + "font-weight:normal;" + "text-align:center;";
 thStyle := tdStyle + "background-color:#f2f2f2;" + "font-weight:bold;"; /* En-tête */
 pStyle := "margin:0; padding:0; font:inherit;";                      /* <p> neutre */
 
 /* HTML de base */
 htS := "<html>";  htE := "</html>"; heS := "<head>";  heE := "</head>";
 bdS := "<body>";  bdE := "</body>"; tdS := "<td style=""" + tdStyle + """>"; tdE := "</td>";
-
-/* Début HTML */
 sTB := htS + heS + "<meta http-equiv=""Content-Type"" content=""text/html; charset=iso-8859-1"" />" + heE + bdS;
 sTB := sTB + "<p style=""text-align:center; background-color:#eeeeee; margin-bottom:20px; border:2px solid black; font-weight:bold;"">Variants identifiés</p>";
 sTB := sTB + "<table border=""3"" style=""border-collapse:collapse; margin-left:auto; margin-right:auto;"">";
 
 /* Les headers */
-sHd := "Locus-Allèle Normale-Allèle 1-Allèle 2-Pathogénicité-Référence";
+sHd := "Locus-Allèle Normale-Allèle 1-Allèle 2-Pathogénicité"; 
 sTB := sTB + "<tr>";
 iHd := 1;
 WHILE NumEntries(sHd, "-") >= iHd DO
     sTB := sTB + "<td style=""" + thStyle + """>" + Entry(iHd, sHd, "-") + "</td>";
     iHd := iHd + 1;
 DONE;
+
 sTB := sTB + "</tr>";
 
-/* Boucle sur les loci */
+/* Boucle sur les locus (au 15/01/2026)  */
 iBody := 1;
 cLocRes := .ApproachActivity().Approach.GetLocusResult(?, ?, ?, iBody);
+
+/* Classification des Motifs pour RFC1 */
+RFC1c1 := "AAAAG,AAAGG";
+RFC1c2 := "AAAGGG";
+RFC1c3 := "AAGAG,AACGG,AGAGG,AAAAGG,AAGGC,AGGGG,GAAGG,AAAAA,AAAAC,AAACG,AACAG,AAGAC,AAGGT,ACGGG,AGGTG,AAAAAG";
+RFC1c4 := "AGGGC,AAAGG";
+RFC1c5 := "AAGGG,ACAGG,MAORI";
+iClass2 := 0;  iClass1 := 0; sRef1 := ""; sRef2 := "";
 
 WHILE cLocRes <> ? DO
     sVName := cLocRes.TestedLocus.Name;
@@ -50,181 +59,301 @@ WHILE cLocRes <> ? DO
     sAl2   := IfKnownString(cLocRes.GetGeneticResultDetail("Motif_A2", ?).Value);
     ExpAl1 := IfKnownString(cLocRes.GetGeneticResultDetail("AL1", ?).Value);
     ExpAl2 := IfKnownString(cLocRes.GetGeneticResultDetail("AL2", ?).Value);
+    Interrup := IfKnownString(cLocRes.GetGeneticResultDetail("INTERRUPTION", ?).Value);
 
     /* Conversion en entier pour conditions */
     iExp1 := StringToInteger(ExpAl1);
     iExp2 := StringToInteger(ExpAl2);
 
-    /* Conversion en string pour HTML */
-    sExp1Str := IntegerToString(iExp1, "%d");
-    sExp2Str := IntegerToString(iExp2, "%d");
 
     /* ---------------------- Montage de la logique  biologique basée sur la littérature, le génotype pour un locus donné ----------- */
     IF sVName = "FGF14" THEN
-        sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "intron 1";
-        IF iExp1 < 180 THEN
-            sClass := "Bénin"; sRef := "FGF14 GAA <180";
+        sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "GAA"; seuilP := "<180";
+        IF iExp1 < 180 AND iExp2 < 180 THEN
+             sClass := "Non pathogène"; sRef := "";
         ELSE
-            IF iExp1 <= 249 THEN
-                sClass := "VUS"; sRef := "FGF14 GAA 180–249";
+             IF iExp1 <= 249 AND iExp2 <= 249 THEN
+                 sClass := "Indéterminé"; sRef := "";
+             ELSE
+                 IF iExp1 <= 299 AND iExp2 <= 299 THEN
+                     sClass := "Pathogène"; sRef := "Pénétrance incomplète";
+
+                 ELSE
+                     sClass := "Pathogène"; sRef := "Pénétrance complète";
+                 ENDIF;
+             ENDIF;
+         ENDIF;
+     ELSE
+        IF sVName = "TBP" THEN
+             sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<41";
+        IF iExp1 <= 40 AND iExp2 <= 40 THEN
+             sClass := "Non pathogène"; sRef := "";
+        ELSE
+             IF iExp1 <= 48 AND iExp2 <= 48 THEN
+                  sClass := "Pathogène"; sRef := "Pénétrance incomplète";
+             ELSE
+                  sClass := "Pathogène"; sRef := "Pénétrance complète";
+             ENDIF;
+        ENDIF;
+     
+     ELSE
+        IF sVName = "ATXN1" THEN
+            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<39";
+        IF iExp1 <= 38 AND iExp2 <= 38 THEN
+            sClass := "Non pathogène"; sRef := "";
+        ELSE
+            IF iExp1 <= 44 AND iExp2 <= 44 AND Interrup <> "OUI" THEN
+                 sClass := "Indéterminé"; sRef := "Allèle instable";
             ELSE
-                IF iExp1 <= 299 THEN
-                    sClass := "Pathogène"; sRef := "FGF14 GAA 250–299";
-                ELSE
-                    sClass := "Pathogène"; sRef := "FGF14 GAA ?300";
-                ENDIF;
+                 sClass := "Pathogène"; sRef := "Pénétrance complète";
             ENDIF;
         ENDIF;
 
-    ELSE
-        IF sVName = "TBP" THEN
-            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "Exon";
-            IF iExp1 <= 40 THEN
-                sClass := "Bénin"; sRef := "TBP CAG ?40";
+     ELSE
+        IF sVName = "ATXN2" THEN
+            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<32";
+        IF iExp1 < 32 AND iExp2 < 32 THEN
+            sClass := "Non pathogène"; sRef := "";
+        ELSE
+            IF iExp1 <= 34 AND iExp2 <= 34 THEN
+                sClass := "Indéterminé"; sRef := "Allèle instable";
             ELSE
-                IF iExp1 <= 48 THEN
-                    sClass := "Pathogène (réduite)"; sRef := "TBP CAG 41–48";
-                ELSE
-                    sClass := "Pathogène"; sRef := "TBP CAG ?49";
-                ENDIF;
+                sClass := "Pathogène"; sRef := "Pénétrance complète";
             ENDIF;
+        ENDIF;
+
+     ELSE
+        IF sVName = "ATXN3" THEN
+            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<45";
+        IF iExp1 < 45 AND iExp2 < 45 THEN
+            sClass := "Non pathogène"; sRef := "";
+        ELSE
+            IF iExp1 < 60 AND iExp2 < 60 THEN
+                sClass := "Indéterminé"; sRef := "Allèle instable";
+            ELSE
+                sClass := "Pathogène"; sRef := "Pénétrance complète";
+            ENDIF;
+        ENDIF;
 
         ELSE
-            IF sVName = "ATXN1" THEN
-                sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "Exon";
-                IF iExp1 <= 38 THEN
-                    sClass := "Bénin"; sRef := "ATXN1 CAG ?38";
-                ELSE
-                    IF iExp1 <= 44 THEN
-                        sClass := "Pathogène"; sRef := "ATXN1 CAG 39–44";
-                    ELSE
-                        sClass := "Pathogène"; sRef := "ATXN1 CAG ?45";
-                    ENDIF;
-                ENDIF;
-
-            ELSE
-                IF sVName = "ATXN2" THEN
-                    sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "Exon";
-                    IF iExp1 < 32 THEN
-                        sClass := "Bénin"; sRef := "ATXN2 CAG <32";
-                    ELSE
-                        IF iExp1 <= 34 THEN
-                            sClass := "Pathogène (réduite)"; sRef := "ATXN2 CAG 32–34";
-                        ELSE
-                            sClass := "Pathogène"; sRef := "ATXN2 CAG ?35";
-                        ENDIF;
-                    ENDIF;
-
-                ELSE
-                    IF sVName = "ATXN3" THEN
-                        sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "Exon";
-                        IF iExp1 < 45 THEN
-                            sClass := "Bénin"; sRef := "ATXN3 CAG <45";
-                        ELSE
-                            IF iExp1 <= 59 THEN
-                                sClass := "Pathogène (réduite)"; sRef := "ATXN3 CAG 45–59";
-                            ELSE
-                                sClass := "Pathogène"; sRef := "ATXN3 CAG ?60";
-                            ENDIF;
-                        ENDIF;
-
-                    ELSE
-                        IF sVName = "CACNA1A" THEN
-                            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "Exon";
-                            IF iExp1 < 19 THEN
-                                sClass := "Bénin"; sRef := "CACNA1A CAG <19";
-                            ELSE
-                                IF iExp1 = 19 THEN
-                                    sClass := "Pathogène (réduite)"; sRef := "CACNA1A CAG 19";
-                                ELSE
-                                    sClass := "Pathogène"; sRef := "CACNA1A CAG >19";
-                                ENDIF;
-                            ENDIF;
-
-                        ELSE
-                            IF sVName = "ATXN7" THEN
-                                sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "Exon";
-                                IF iExp1 < 19 THEN
-                                    sClass := "Bénin"; sRef := "ATXN7 CAG <19";
-                                ELSE
-                                    IF iExp1 <= 33 THEN
-                                        sClass := "VUS"; sRef := "ATXN7 CAG 28–33";
-                                    ELSE
-                                        IF iExp1 <= 35 THEN
-                                            sClass := "Pathogène"; sRef := "ATXN7 CAG 34–35";
-                                        ELSE
-                                            sClass := "Pathogène"; sRef := "ATXN7 CAG ?36";
-                                        ENDIF;
-                                    ENDIF;
-                                ENDIF;
-
-                            ELSE
-                                IF sVName = "FMR1" THEN
-                                    sMot1 := "CCG"; sMot2 := "CCG"; sPhysio := "5'UTR";
-                                    IF iExp1 < 45 THEN
-                                        sClass := "Bénin"; sRef := "FMR1 CCG <45";
-                                    ELSE
-                                        IF iExp1 <= 54 THEN
-                                            sClass := "VUS"; sRef := "FMR1 CCG 45–54";
-                                        ELSE
-                                            IF iExp1 <= 200 THEN
-                                                sClass := "Prémutation"; sRef := "FMR1 prémutation";
-                                            ELSE
-                                                sClass := "Pathogène"; sRef := "FMR1 mutation complète";
-                                            ENDIF;
-                                        ENDIF;
-                                    ENDIF;
-
-                                ELSE
-                                    IF sVName = "FXN" THEN
-                                        sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "intron";
-                                        IF iExp1 < 33 AND iExp2 < 33 THEN
-                                            sClass := "Bénin"; sRef := "FXN <33 / <33";
-                                        ELSE
-                                            IF iExp1 >= 34 AND iExp2 >= 34 THEN
-                                                sClass := "Pathogène"; sRef := "FXN ?34 bi-allélique";
-                                            ELSE
-                                                sClass := "VUS"; sRef := "FXN hétérozygote composite";
-                                            ENDIF;
-                                        ENDIF;
-
-                                    ELSE
-                                        IF sVName = "RFC1" THEN
-                                            sMot1 := sAl1; sMot2 := sAl2; sPhysio := "intron";
-                                            IF sMot1 = "AAGGG" OR sMot2 = "AAGGG" THEN
-                                                sClass := "Pathogène"; sRef := "RFC1 AAGGG";
-                                            ELSE
-                                                IF sMot1 = "AAAGGG" OR sMot2 = "AAAGGG" THEN
-                                                    sClass := "Probablement bénin"; sRef := "RFC1 AAAGGG";
-                                                ELSE
-                                                    sClass := "VUS"; sRef := "RFC1 motif rare";
-                                                ENDIF;
-                                            ENDIF;
-                                        ELSE
-                                            sMot1 := "?"; sMot2 := "?"; sPhysio := "?";
-                                            sClass := "Indéterminé"; sRef := "Locus inconnu";
-                                        ENDIF;
-                                    ENDIF;
-                                ENDIF;
-                            ENDIF;
-                        ENDIF;
-                    ENDIF;
-                ENDIF;
-            ENDIF;
+    IF sVName = "CACNA1A" THEN
+          sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<19";
+    IF iExp1 < 19 AND iExp2 < 19 THEN
+          sClass := "Non pathogène"; sRef := "";
+    ELSE
+        IF iExp1 < 20 AND iExp2 < 20 THEN
+            sClass := "Pathogène"; sRef := "Pénétrance incomplète";
+        ELSE
+            sClass := "Pathogène"; sRef := "Pénétrance complète";
         ENDIF;
     ENDIF;
-    
-    /* ---------------------- FIN de L'arbre décisionnel ----------- */
 
-    /* Génération ligne HTML */
+    ELSE
+        IF sVName = "ATXN7" THEN
+            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<29";
+        IF iExp1 < 29 AND iExp2 < 29 THEN
+            sClass := "Non pathogène"; sRef := "";
+        ELSE
+            IF iExp1 < 35 AND iExp2 < 35 THEN
+                sClass := "Indéterminé"; sRef := "Allèle instable";
+            ELSE
+                IF iExp1 < 36 AND iExp2 < 36 THEN
+                    sClass := "Pathogène"; sRef := "Pénétrance incomplète";
+                ELSE
+                    sClass := "Pathogène"; sRef := "Pénétrance complète";
+                ENDIF;
+            ENDIF;
+        ENDIF;
+    ELSE
+        IF sVName = "FMR1" THEN
+           sMot1 := "CCG"; sMot2 := "CCG"; sPhysio := "CCG"; seuilP := "<45";
+        IF iExp1 < 45 AND iExp2 < 45 THEN
+           sClass := "Non pathogène"; sRef := "";
+        ELSE
+            IF iExp1 < 55 AND iExp2 < 55 THEN
+                sClass := "Indéterminé"; sRef := "Allèle instable";
+            ELSE
+                IF iExp1 <= 200 AND iExp2 <= 200 THEN
+                    sClass := "Pathogène"; sRef := "FMR1 prémutation";
+                ELSE
+                    sClass := "Pathogène"; sRef := "FMR1 mutation complète";
+                ENDIF;
+           ENDIF;
+        ENDIF;
+
+     ELSE
+        IF sVName = "FXN" THEN
+           sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "GAA"; seuilP := "<90";
+        IF iExp1 < 34 AND iExp2 < 34 THEN
+           sClass := "Non pathogène"; sRef := "";
+        ELSE
+           IF (iExp1 >= 34 AND iExp2 < 34) OR (iExp1 < 34 AND iExp2 >= 34) THEN
+                sClass := "Indéterminé"; sRef := "FXN hétérozygote";
+           ELSE
+                IF iExp1 < 90 AND iExp2 < 90 THEN
+                    sClass := "Indéterminé"; sRef := "FXN expansions intermédiaires";
+                ELSE
+                    sClass := "Pathogène"; sRef := "FXN pénétrance complète";
+                ENDIF;
+           ENDIF;
+        ENDIF;
+
+      ELSE
+         IF sVName = "RFC1" THEN
+             sMot1 := sAl1; sMot2 := sAl2;
+             /* ---------- RFC1 – allèle 1 ---------- */
+             /* AAAGG avec gestion du seuil */
+             IF sMot1 = "AAAGG" THEN
+                IF iExp1 < 500 THEN
+                  iClass1 := 1;
+                  sRef1 := "Cortese et al.,2019.";
+                ELSE
+                  iClass1 := 4;
+           sRef1 := "Scriba et al.,2023";
+        ENDIF;
+    ELSE
+        IF Lookup(sMot1, RFC1c1, ",") > 0 THEN
+            iClass1 := 1; sRef1 := "Cortese et al.,2019";
+      
+        ELSE
+              IF Lookup(sMot1, RFC1c2, ",") > 0 THEN
+                 iClass1 := 2; sRef1 := "Abramzon et al.,2021";
+
+              ELSE
+                    IF Lookup(sMot1, RFC1c3, ",") > 0 THEN
+                        iClass1 := 3; sRef1 := "Akçimen / Scriba et al.,2023";
+
+                    ELSE
+                         IF Lookup(sMot1, RFC1c4, ",") > 0 THEN
+                            iClass1 := 4; sRef1 := "Scriba et al.,2023";
+
+                         ELSE
+                             IF Lookup(sMot1, RFC1c5, ",") > 0 THEN
+                                iClass1 := 5; sRef1 := "Cortese / Beecroft et al.";
+                             ENDIF;
+                         ENDIF;
+                     ENDIF;
+                ENDIF;
+          ENDIF;
+     ENDIF;
+
+     /* ---------- RFC1 – allèle 2 ---------- */
+     /* AAAGG avec gestion du seuil */
+     IF sMot2 = "AAAGG" THEN
+         IF iExp2 < 500 THEN
+             iClass2 := 1;
+             sRef2 := "Cortese et al.,2019";
+         ELSE
+             iClass2 := 4;
+             sRef2 := "Scriba et al.,2023";
+         ENDIF;
+
+     ELSE
+         IF Lookup(sMot2, RFC1c1, ",") > 0 THEN
+            iClass2 := 1; sRef2 := "Cortese et al.,2019";
+
+         ELSE
+              IF Lookup(sMot2, RFC1c2, ",") > 0 THEN
+                 iClass2 := 2; sRef2 := "Abramzon et al.,2021";
+
+              ELSE
+                   IF Lookup(sMot2, RFC1c3, ",") > 0 THEN
+                      iClass2 := 3; sRef2 := "Akçimen / Scriba et al.,2023";
+
+                   ELSE
+                        IF Lookup(sMot2, RFC1c4, ",") > 0 THEN
+                           iClass2 := 4; sRef2 := "Scriba et al.,2023";
+
+                        ELSE
+                             IF Lookup(sMot2, RFC1c5, ",") > 0 THEN
+                                iClass2 := 5; sRef2 := "Cortese / Beecroft et al.";
+                             ENDIF;
+                        ENDIF;
+                   ENDIF;
+               ENDIF;
+           ENDIF;
+     ENDIF;
+    sPhysio := "(AAAAG)<sub>n</sub><br/>" + "(AAAGG)<sub>"+"n<500"+"</sub><br/>" + "(AAAGGG";
+
+    /* Deux allèles pathogènes ou likely pathogènes */
+    IF iClass1 >= 4 AND iClass2 >= 4 THEN
+        sClass := "Pathogène";
+        sRef := sRef1 + " / " + sRef2;
+
+    /* Deux VUS */
+    ELSE
+        IF iClass1 = 3 AND iClass2 = 3 THEN
+            sClass := "Indéterminé";
+            sRef := sRef1 + " / " + sRef2;
+
+           /* Deux Non pathogènes ou likely Non pathogènes */
+        ELSE
+            IF iClass1 <= 2 AND iClass2 <= 2 THEN
+               IF iClass1 = 1 AND iClass2 = 1 THEN
+                   sClass := "Non pathogène";
+               ELSE
+                   sClass := "Probablement Non pathogène (Classe 2)";
+               ENDIF;
+            sRef := sRef1 + " / " + sRef2;
+    /* Toutes les autres combinaisons */
+    ELSE
+        sClass := "Indéterminé";
+        sRef := sRef1 + " / " + sRef2;
+           ENDIF;
+        ENDIF;
+    ENDIF;
+
+ELSE
+    sMot1 := "?"; sMot2 := "?"; sPhysio := "?";
+    sClass := "Indéterminé"; sRef := "Locus inconnu";
+
+ENDIF; ENDIF; ENDIF; ENDIF; ENDIF;
+ENDIF; ENDIF; ENDIF; ENDIF; ENDIF;
+   sPhysio := Replace(Replace(sPhysio,"((","("),")n)n",")n"); 
+    
+/* -------------------- Mise en évidence des Allèles pathogènes selon LOCUS et mode de tranmission  ----------- */
+
+iExp1 := StringToInteger(ExpAl1); 
+iExp2 := StringToInteger(ExpAl2); 
+
+iSeuil := StringToInteger(Replace(Replace(SeuilP,"<",""),">",""));
+
+/* Dominant : mettre en évidence l’allèle le plus pathogène */
+IF sClass = "Pathogène" AND INDEX("RFC1,FXN,CANVAS", sVName) = 0 THEN
+    IF iExp1 > iSeuil OR iExp2 > iSeuil THEN
+        IF iExp1 > iExp2 THEN
+            ExpAl1 := "<span style=""font-weight:bold;color:red;"">" + ExpAl1 + "</span>";
+        ELSE
+            IF iExp2 > iExp1 THEN
+               ExpAl2 := "<span style=""font-weight:bold;color:red;"">" + ExpAl2 + "</span>";
+     ELSE
+            /* égalité ou les deux dépassent le seuil */
+            ExpAl1 := "<span style=""font-weight:bold;color:red;"">" + ExpAl1 + "</span>";
+            ExpAl2 := "<span style=""font-weight:bold;color:red;"">" + ExpAl2 + "</span>";
+            ENDIF;
+         ENDIF;
+    ENDIF;
+
+/* Récessif : mettre en évidence les deux allèles si la classe est Pathogène */
+ELSE 
+    IF sClass = "Pathogène" AND INDEX("RFC1,FXN,CANVAS", sVName) >0 THEN
+        IF iExp1 > iSeuil AND iExp2 > iSeuil THEN
+            ExpAl1 := "<span style=""font-weight:bold;color:red;"">" + ExpAl1 + "</span>";
+            ExpAl2 := "<span style=""font-weight:bold;color:red;"">" + ExpAl2 + "</span>";
+        ENDIF;
+    ENDIF;
+ENDIF;
+
+    /*---------- Conclusion -------*/
     sTB := sTB + "<tr>";
     sTB := sTB + tdS + "<i>" + sVName + "</i>" + tdE;
-    sTB := sTB + tdS + "<p style=""" + pStyle + """>(" + sPhysio + ")<sub>n</sub></p>" + tdE;
-    sTB := sTB + tdS + "(" + sMot1 + ")<sub>" + sExp1Str + "</sub>" + tdE;
-    sTB := sTB + tdS + "(" + sMot2 + ")<sub>" + sExp2Str + "</sub>" + tdE;
+    sTB := sTB + tdS + "<p style=""" + pStyle + """>(" + sPhysio + ")<sub>n" + seuilP + "</sub></p>"+ tdE;
+    sTB := sTB + tdS + "(" + sMot1 + ")"+"<sub>" + ExpAl1 + "</sub>" + tdE;
+    sTB := sTB + tdS + "(" + sMot2 + ")"+"<sub>" + ExpAl2 + "</sub>" + tdE;
     sTB := sTB + tdS + sClass + tdE;
-    sTB := sTB + tdS + sRef + tdE;
+   /*sTB := sTB + tdS + sRef + tdE;*/
     sTB := sTB + "</tr>";
+    sTB := Replace(Replace(sTB,"((","("),")<sub>n)<sub>n",")<sub>n");
 
     /* Passage au locus suivant */
     iBody := iBody + 1;
@@ -235,3 +364,5 @@ DONE;
 /* Clôture tableau HTML */
 RETURN sTB + "</table>" + bdE + htE;
 }
+
+
