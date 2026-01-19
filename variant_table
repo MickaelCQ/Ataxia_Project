@@ -8,13 +8,16 @@ STRING sPhysio, seuilP, Interrup;
 STRING RFC1c1, RFC1c2, RFC1c3, RFC1c4, RFC1c5, sRef1, sRef2;
 INTEGER iClass0, iClass1, iClass2;
 INTEGER iHd, iBody,iExp1, iExp2, iSeuil;
+LOGICAL bPathoA1, bPathoA2;
 
 LOCUSRESULT cLocRes;
 
 /* html*/
-STRING htS, htE, heS, heE, bdS, bdE;
+STRING htS, htE, heS, heE, bdS, bdE, spS, spE;
 STRING tdS, tdE;
-STRING tdStyle, thStyle, pStyle;
+STRING tdStyle, thStyle, pStyle, tdGreyS;
+
+/* les triggers pour la mise en forme */
 
 /* Style commun à toutes les cellules */
 tdStyle := "padding:6px 10px;" + "vertical-align:middle;" + "font-family:Arial;" + "font-size:10px;" + "font-style:normal;" + "font-weight:normal;" + "text-align:center;";
@@ -24,6 +27,9 @@ pStyle := "margin:0; padding:0; font:inherit;";                      /* <p> neut
 /* HTML de base */
 htS := "<html>";  htE := "</html>"; heS := "<head>";  heE := "</head>";
 bdS := "<body>";  bdE := "</body>"; tdS := "<td style=""" + tdStyle + """>"; tdE := "</td>";
+spS := "<span style=""font-weight:bold;color:red;"">" ; spE := "</span>";
+tdGreyS := "<td style=""" + tdStyle + "background-color: #e0e0e0;"">";
+
 sTB := htS + heS + "<meta http-equiv=""Content-Type"" content=""text/html; charset=iso-8859-1"" />" + heE + bdS;
 sTB := sTB + "<p style=""text-align:center; background-color:#eeeeee; margin-bottom:20px; border:2px solid black; font-weight:bold;"">Variants identifiés</p>";
 sTB := sTB + "<table border=""3"" style=""border-collapse:collapse; margin-left:auto; margin-right:auto;"">";
@@ -52,6 +58,7 @@ RFC1c5 := "AAGGG,ACAGG,MAORI";
 iClass2 := 0;  iClass1 := 0; sRef1 := ""; sRef2 := "";
 
 WHILE cLocRes <> ? DO
+    bPathoA1 := FALSE; bPathoA2 := FALSE;
     sVName := cLocRes.TestedLocus.Name;
 
     /* Récupération sécurisée */
@@ -273,7 +280,7 @@ WHILE cLocRes <> ? DO
                ENDIF;
            ENDIF;
      ENDIF;
-    sPhysio := "(AAAAG)<sub>n</sub><br/>" + "(AAAGG)<sub>"+"n<500"+"</sub><br/>" + "(AAAGGG";
+    sPhysio := "(AAAGG)<sub>"+"n<500"+"</sub><br/>" + "(AAAAG)<sub>n</sub><br/>" + "(AAAGGG";
 
     /* Deux allèles pathogènes ou likely pathogènes */
     IF iClass1 >= 4 AND iClass2 >= 4 THEN
@@ -318,28 +325,27 @@ iExp2 := StringToInteger(ExpAl2);
 
 iSeuil := StringToInteger(Replace(Replace(SeuilP,"<",""),">",""));
 
-/* Dominant : mettre en évidence l’allèle le plus pathogène */
-IF sClass = "Pathogène" AND INDEX("RFC1,FXN,CANVAS", sVName) = 0 THEN
+/* Dominant donc mise en évidence l’allèle le plus pathogène */
+
+IF sClass = "Pathogène" AND INDEX("RFC1,FXN", sVName) = 0 THEN
     IF iExp1 > iSeuil OR iExp2 > iSeuil THEN
-        IF iExp1 > iExp2 THEN
-            ExpAl1 := "<span style=""font-weight:bold;color:red;"">" + ExpAl1 + "</span>";
-        ELSE
-            IF iExp2 > iExp1 THEN
-               ExpAl2 := "<span style=""font-weight:bold;color:red;"">" + ExpAl2 + "</span>";
-     ELSE
-            /* égalité ou les deux dépassent le seuil */
-            ExpAl1 := "<span style=""font-weight:bold;color:red;"">" + ExpAl1 + "</span>";
-            ExpAl2 := "<span style=""font-weight:bold;color:red;"">" + ExpAl2 + "</span>";
-            ENDIF;
-         ENDIF;
+        IF iExp1 > iExp2 THEN 
+           bPathoA1 := TRUE;
+        ELSE IF iExp2 > iExp1 THEN 
+           bPathoA2 := TRUE;
+    ELSE
+        bPathoA1 := TRUE;
+        bPathoA2 := TRUE;
+        ENDIF;
+        ENDIF;
     ENDIF;
 
-/* Récessif : mettre en évidence les deux allèles si la classe est Pathogène */
+/* Récessivté donc mise en évidence les deux allèles si la classe est Pathogène */
 ELSE 
     IF sClass = "Pathogène" AND INDEX("RFC1,FXN,CANVAS", sVName) >0 THEN
         IF iExp1 > iSeuil AND iExp2 > iSeuil THEN
-            ExpAl1 := "<span style=""font-weight:bold;color:red;"">" + ExpAl1 + "</span>";
-            ExpAl2 := "<span style=""font-weight:bold;color:red;"">" + ExpAl2 + "</span>";
+        bPathoA1 := TRUE;
+        bPathoA2 := TRUE;
         ENDIF;
     ENDIF;
 ENDIF;
@@ -348,8 +354,19 @@ ENDIF;
     sTB := sTB + "<tr>";
     sTB := sTB + tdS + "<i>" + sVName + "</i>" + tdE;
     sTB := sTB + tdS + "<p style=""" + pStyle + """>(" + sPhysio + ")<sub>n" + seuilP + "</sub></p>"+ tdE;
-    sTB := sTB + tdS + "(" + sMot1 + ")"+"<sub>" + ExpAl1 + "</sub>" + tdE;
-    sTB := sTB + tdS + "(" + sMot2 + ")"+"<sub>" + ExpAl2 + "</sub>" + tdE;
+
+    IF bPathoA1 THEN
+        sTB := sTB + tdGreyS + "(" + sMot1 + ")<sub><b>" + ExpAl1 + "</b></sub>"+ tdE;
+    ELSE
+        sTB := sTB + tdS + "(" + sMot1 + ")<sub>" + ExpAl1 + "</sub>" + tdE;
+    ENDIF;
+
+    IF bPathoA2 THEN
+        sTB := sTB + tdGreyS + "(" + sMot2 + ")<sub><b>" + ExpAl2 + "</b></sub>"+ tdE;
+    ELSE
+        sTB := sTB + tdS + "(" + sMot2 + ")"+"<sub>" + ExpAl2 + "</sub>" + tdE;
+    ENDIF;
+
     sTB := sTB + tdS + sClass + tdE;
    /*sTB := sTB + tdS + sRef + tdE;*/
     sTB := sTB + "</tr>";
