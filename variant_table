@@ -1,4 +1,4 @@
-{:/* CQM--CHU NIMES -- 12/01/2026 TABLEAU VARIANT(S) -- CONCLUSION(S) ATAXIE*/
+{:/* CQM--CHU NIMES -- 12/01/2026 TABLEAU VARIANT(S) -- CONCLUSION(S) ATAXIE */
 
 STRING sTB, sHd, sVName, sClass, sRef, sCcl ;
 STRING sExp1, sExp2, ExpAl1, ExpAl2, sAl1, sAl2, sMot1, sMot2 ;
