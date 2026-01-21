@@ -1,33 +1,27 @@
 {:/* CQM--CHU NIMES -- 12/01/2026 TABLEAU VARIANT(S) -- CONCLUSION(S) ATAXIE*/
 
-STRING sTB, sHd;
-STRING sVName, sClass, sRef;
-STRING sAl1, sAl2, sMot1, sMot2;
-STRING sExp1, sExp2, ExpAl1, ExpAl2;
-STRING sPhysio, seuilP, Interrup;
+STRING sTB, sHd, sVName, sClass, sRef, sCcl ;
+STRING sExp1, sExp2, ExpAl1, ExpAl2, sAl1, sAl2, sMot1, sMot2 ;
+STRING sPhysio, seuilP, Interrup ;
 STRING RFC1c1, RFC1c2, RFC1c3, RFC1c4, RFC1c5, sRef1, sRef2;
-INTEGER iClass0, iClass1, iClass2;
-INTEGER iHd, iBody,iExp1, iExp2, iSeuil;
+INTEGER iClass0, iClass1, iClass2, iHd, iBody,iExp1, iExp2, iSeuil;
 LOGICAL bPathoA1, bPathoA2;
-
 LOCUSRESULT cLocRes;
 
-/* html*/
-STRING htS, htE, heS, heE, bdS, bdE, spS, spE;
-STRING tdS, tdE;
-STRING tdStyle, thStyle, pStyle, tdGreyS;
-
-/* les triggers pour la mise en forme */
+STRING htS, htE, heS, heE, bdS, bdE, spS, spE, spacS, tdS, tdE, tdStyle, thStyle, pStyle, tdGreyS; /* html*/
 
 /* Style commun à toutes les cellules */
 tdStyle := "padding:6px 10px;" + "vertical-align:middle;" + "font-family:Arial;" + "font-size:10px;" + "font-style:normal;" + "font-weight:normal;" + "text-align:center;";
 thStyle := tdStyle + "background-color:#f2f2f2;" + "font-weight:bold;"; /* En-tête */
-pStyle := "margin:0; padding:0; font:inherit;";                      /* <p> neutre */
+pStyle := "margin:0; padding:0; font:inherit;";                         /* <p> neutre */
 
 /* HTML de base */
 htS := "<html>";  htE := "</html>"; heS := "<head>";  heE := "</head>";
 bdS := "<body>";  bdE := "</body>"; tdS := "<td style=""" + tdStyle + """>"; tdE := "</td>";
 spS := "<span style=""font-weight:bold;color:red;"">" ; spE := "</span>";
+spacS := "<span style=""display:block; line-height:1.4;"">" ;
+
+
 tdGreyS := "<td style=""" + tdStyle + "background-color: #e0e0e0;"">";
 
 sTB := htS + heS + "<meta http-equiv=""Content-Type"" content=""text/html; charset=iso-8859-1"" />" + heE + bdS;
@@ -72,47 +66,50 @@ WHILE cLocRes <> ? DO
     iExp1 := StringToInteger(ExpAl1);
     iExp2 := StringToInteger(ExpAl2);
 
+    /*sCcl := sCcl + Expand("Action",.Id,Chr(123) + "<BB_ATX_FGF14_001" + Chr(125),?) + Chr(13); */
 
-    /* ---------------------- Montage de la logique  biologique basée sur la littérature, le génotype pour un locus donné ----------- */
+/* ---------------------- Montage de la logique  biologique basée sur la littérature, le génotype pour un locus donné ----------- */
     IF sVName = "FGF14" THEN
-        sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "GAA"; seuilP := "<180";
-        IF iExp1 < 180 AND iExp2 < 180 THEN
-             sClass := "Non pathogène"; sRef := "";
+        sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "GAA"; seuilP := "<200";
+        IF iExp1 < 200 AND iExp2 < 200 THEN
+             sClass := "Non pathogène"; sRef := ""; 
         ELSE
              IF iExp1 <= 249 AND iExp2 <= 249 THEN
-                 sClass := "Indéterminé"; sRef := "";
+                 sClass := "Indéterminé"; sRef := ""; /* BB_ATX_FGF14_001 */
+                 sCcl := sCcl + Expand("Action",.Id,Chr(123) + "<BB_ATX_SCA_PC_001" + Chr(125),?) + Chr(13);
              ELSE
                  IF iExp1 <= 299 AND iExp2 <= 299 THEN
-                     sClass := "Pathogène"; sRef := "Pénétrance incomplète";
+                     sClass := "Pathogène"; sRef := "Pénétrance incomplète"; /*BB_ATX_SCA_PI_001 */
 
                  ELSE
-                     sClass := "Pathogène"; sRef := "Pénétrance complète";
+                     sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
                  ENDIF;
              ENDIF;
          ENDIF;
      ELSE
         IF sVName = "TBP" THEN
              sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<41";
-        IF iExp1 <= 40 AND iExp2 <= 40 THEN
+        IF iExp1 <= 40 AND iExp2 <= 40 THEN 
              sClass := "Non pathogène"; sRef := "";
         ELSE
              IF iExp1 <= 48 AND iExp2 <= 48 THEN
-                  sClass := "Pathogène"; sRef := "Pénétrance incomplète";
+                  sClass := "Pathogène"; sRef := "Pénétrance incomplète"; /*BB_ATX_SCA_PI_001 */
              ELSE
-                  sClass := "Pathogène"; sRef := "Pénétrance complète";
+                  sClass := "Pathogène"; sRef := "Pénétrance complète";   /*BB_ATX_SCA_PC_001*/
              ENDIF;
         ENDIF;
-     
+
      ELSE
         IF sVName = "ATXN1" THEN
             sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<39";
         IF iExp1 <= 38 AND iExp2 <= 38 THEN
-            sClass := "Non pathogène"; sRef := "";
+            sClass := "Non pathogène"; sRef := ""; 
         ELSE
-            IF iExp1 <= 44 AND iExp2 <= 44 AND Interrup <> "OUI" THEN
-                 sClass := "Indéterminé"; sRef := "Allèle instable";
+            IF iExp1 <= 44 AND iExp2 <= 44 AND Interrup = "OUI" THEN
+                 sClass := "Non pathogène "; sRef := "Allèle instable"; 
             ELSE
-                 sClass := "Pathogène"; sRef := "Pénétrance complète";
+                 sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
+                 sCcl := sCcl + Expand("Action",.Id,Chr(123) + "<BB_ATX_SCA_PC_001" + Chr(125),?) + Chr(13);
             ENDIF;
         ENDIF;
 
@@ -123,9 +120,9 @@ WHILE cLocRes <> ? DO
             sClass := "Non pathogène"; sRef := "";
         ELSE
             IF iExp1 <= 34 AND iExp2 <= 34 THEN
-                sClass := "Indéterminé"; sRef := "Allèle instable";
+                sClass := "Non pathogène"; sRef := "Allèle instable";
             ELSE
-                sClass := "Pathogène"; sRef := "Pénétrance complète";
+                sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
             ENDIF;
         ENDIF;
 
@@ -136,22 +133,22 @@ WHILE cLocRes <> ? DO
             sClass := "Non pathogène"; sRef := "";
         ELSE
             IF iExp1 < 60 AND iExp2 < 60 THEN
-                sClass := "Indéterminé"; sRef := "Allèle instable";
+                sClass := "Non pathogène"; sRef := "Allèle instable";
             ELSE
-                sClass := "Pathogène"; sRef := "Pénétrance complète";
+                sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
             ENDIF;
         ENDIF;
 
         ELSE
-    IF sVName = "CACNA1A" THEN
+    IF sVName = "CACNA1A" THEN /* SCA6 */
           sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<19";
     IF iExp1 < 19 AND iExp2 < 19 THEN
           sClass := "Non pathogène"; sRef := "";
     ELSE
         IF iExp1 < 20 AND iExp2 < 20 THEN
-            sClass := "Pathogène"; sRef := "Pénétrance incomplète";
+            sClass := "Pathogène"; sRef := "Pénétrance incomplète"; /*BB_ATX_SCA_PI_001 */
         ELSE
-            sClass := "Pathogène"; sRef := "Pénétrance complète";
+            sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
         ENDIF;
     ENDIF;
 
@@ -161,50 +158,53 @@ WHILE cLocRes <> ? DO
         IF iExp1 < 29 AND iExp2 < 29 THEN
             sClass := "Non pathogène"; sRef := "";
         ELSE
-            IF iExp1 < 35 AND iExp2 < 35 THEN
-                sClass := "Indéterminé"; sRef := "Allèle instable";
+            IF iExp1 < 34 AND iExp2 < 34 THEN
+                sClass := "Non pathogène"; sRef := "Allèle instable";
             ELSE
                 IF iExp1 < 36 AND iExp2 < 36 THEN
-                    sClass := "Pathogène"; sRef := "Pénétrance incomplète";
+                    sClass := "Pathogène"; sRef := "Pénétrance incomplète";/* BB_ATX_SCA_PI_001 */
                 ELSE
-                    sClass := "Pathogène"; sRef := "Pénétrance complète";
+                    sClass := "Pathogène"; sRef := "Pénétrance complète";/* BB_ATX_SCA_PC_001 */
                 ENDIF;
             ENDIF;
         ENDIF;
     ELSE
         IF sVName = "FMR1" THEN
-           sMot1 := "CCG"; sMot2 := "CCG"; sPhysio := "CCG"; seuilP := "<45";
+           sMot1 := "CGG"; sMot2 := "CGG"; sPhysio := "CGG"; seuilP := "<45";
         IF iExp1 < 45 AND iExp2 < 45 THEN
            sClass := "Non pathogène"; sRef := "";
         ELSE
             IF iExp1 < 55 AND iExp2 < 55 THEN
-                sClass := "Indéterminé"; sRef := "Allèle instable";
+                sClass := "Indéterminé"; sRef := "Allèle instable"; /* BB_ATX_FMR_001 à venir compléter */
             ELSE
                 IF iExp1 <= 200 AND iExp2 <= 200 THEN
-                    sClass := "Pathogène"; sRef := "FMR1 prémutation";
+                    sClass := "Pathogène"; sRef := "FMR1 prémutation";  /* BB_ATX_FMR_002 */
                 ELSE
-                    sClass := "Pathogène"; sRef := "FMR1 mutation complète";
+                    sClass := "Voir conclusion"; sRef := "FMR1 mutation complète"; /* BB_ATX_FMR_003 */
                 ENDIF;
            ENDIF;
         ENDIF;
-
+     /* A VERIFIER */ 
      ELSE
         IF sVName = "FXN" THEN
-           sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "GAA"; seuilP := "<90";
+           sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "GAA"; seuilP := "<34";
         IF iExp1 < 34 AND iExp2 < 34 THEN
-           sClass := "Non pathogène"; sRef := "";
+           sClass := "Non pathogène"; sRef := ""; 
         ELSE
            IF (iExp1 >= 34 AND iExp2 < 34) OR (iExp1 < 34 AND iExp2 >= 34) THEN
-                sClass := "Indéterminé"; sRef := "FXN hétérozygote";
+                sClass := "Non pathogène"; sRef := "FXN hétérozygote"; /* BB_ATX_FXN_001 */
            ELSE
-                IF iExp1 < 90 AND iExp2 < 90 THEN
-                    sClass := "Indéterminé"; sRef := "FXN expansions intermédiaires";
+                IF iExp1 < 90 AND iExp2 < 90 AND Interrup = "OUI" THEN
+                    sClass := "Indéterminé"; sRef := "FXN expansions intermédiaires avec interruption "; /* BB_ATX_FXN_002 */
                 ELSE
-                    sClass := "Pathogène"; sRef := "FXN pénétrance complète";
+                     IF  iExp1 < 90 AND iExp2 < 90 THEN
+                        sClass := "Porteur"; sRef := "FXN autosomique recessif"; 
+                     ELSE
+                        sClass := "Pathogène"; sRef := "FXN pénétrance complète";/* BB_ATX_FXN_003 */
+                     ENDIF;
                 ENDIF;
            ENDIF;
-        ENDIF;
-
+         ENDIF;
       ELSE
          IF sVName = "RFC1" THEN
              sMot1 := sAl1; sMot2 := sAl2;
@@ -280,7 +280,9 @@ WHILE cLocRes <> ? DO
                ENDIF;
            ENDIF;
      ENDIF;
-    sPhysio := "(AAAGG)<sub>"+"n<500"+"</sub><br/>" + "(AAAAG)<sub>n</sub><br/>" + "(AAAGGG";
+    sPhysio := spacS + "(AAAAG)<sub>" +   "n"  + "</sub></span>" +
+               spacS + "(AAAGGG)<sub>"+   "n"  + "</sub></span>" +
+               spacS + "(AAAGG)<sub>" + "n<500"+ "</sub></span>" ;
 
     /* Deux allèles pathogènes ou likely pathogènes */
     IF iClass1 >= 4 AND iClass2 >= 4 THEN
@@ -299,7 +301,7 @@ WHILE cLocRes <> ? DO
                IF iClass1 = 1 AND iClass2 = 1 THEN
                    sClass := "Non pathogène";
                ELSE
-                   sClass := "Probablement Non pathogène (Classe 2)";
+                   sClass := "Probablement Non pathogène";
                ENDIF;
             sRef := sRef1 + " / " + sRef2;
     /* Toutes les autres combinaisons */
@@ -350,10 +352,15 @@ ELSE
     ENDIF;
 ENDIF;
 
-    /*---------- Conclusion -------*/
+    /*---------- Montage final -------*/
     sTB := sTB + "<tr>";
     sTB := sTB + tdS + "<i>" + sVName + "</i>" + tdE;
-    sTB := sTB + tdS + "<p style=""" + pStyle + """>(" + sPhysio + ")<sub>n" + seuilP + "</sub></p>"+ tdE;
+
+    IF sVName = "RFC1" THEN
+        sTB := sTB + tdS +"<p style=""" + pStyle + """>" + sPhysio + "</p>" +tdE;
+    ELSE
+        sTB := sTB + tdS +"<p style=""" + pStyle + """>(" + sPhysio + ")<sub>n" + seuilP + "</sub></p>" + tdE;
+    ENDIF;
 
     IF bPathoA1 THEN
         sTB := sTB + tdGreyS + "(" + sMot1 + ")<sub><b>" + ExpAl1 + "</b></sub>"+ tdE;
@@ -367,8 +374,13 @@ ENDIF;
         sTB := sTB + tdS + "(" + sMot2 + ")"+"<sub>" + ExpAl2 + "</sub>" + tdE;
     ENDIF;
 
-    sTB := sTB + tdS + sClass + tdE;
-   /*sTB := sTB + tdS + sRef + tdE;*/
+    IF bPathoA1 || bPathoA2 THEN
+       sTB := sTB + tdGreyS+ sClass + tdE;
+    ELSE
+       sTB := sTB + tdS + sClass + tdE;
+    ENDIF;
+     
+    /* Montage des textes */
     sTB := sTB + "</tr>";
     sTB := Replace(Replace(sTB,"((","("),")<sub>n)<sub>n",")<sub>n");
 
@@ -378,8 +390,20 @@ ENDIF;
 
 DONE;
 
-/* Clôture tableau HTML */
-RETURN sTB + "</table>" + bdE + htE;
+IF sCcl <> "" THEN
+    sTB := sTB +
+           "</table>" +
+           "<div style='margin-top:20px; padding:10px; " +
+           "border:1px solid #999; font-family:Arial; font-size:10px;'>" +
+           "<b>Conclusion :</b><br/>" +
+           sCcl +
+           "</div>";
+ELSE
+    sTB := sTB + "</table>";
+ENDIF;
+
+RETURN sTB + bdE + htE;
+
 }
 
 
