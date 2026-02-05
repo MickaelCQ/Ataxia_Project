@@ -1,0 +1,64 @@
+{:
+/* Mickael – CHU NÎMES - 05/02/2026 -TABLEAU DES RÉFÉRENCES – MALADIES À EXPANSIONS ATAXIES*/
+
+STRING sTB, subHead;
+STRING sListMaladie, sListGene, sListMotifs;
+STRING sListIntervalles, sListTransmission, sListRef;
+INTEGER iHead, iRow;
+
+/* HEADERS*/
+subHead :="Maladie#Gène#Motif(s)<br>Pathogène(s)#Intervalles#Transmission*#Référence(s)";
+
+/* ROWS*/
+sListMaladie :="Friedreich#CANVAS#SCA 1#SCA 2#SCA 3#SCA 6#SCA 7#SCA 17#SCA 27B#SCA 36#FXTAS";
+
+sListGene :="FXN#RFC1#ATXN1#ATXN2#ATXN3#CACNA1A#ATXN7#TBP#FGF14#NOP56#FMR1";
+
+sListMotifs := "GAA#AAGGG<br>AAAGG<br>ACAGG<br>AGGGC<br>Maori**#CAG#CAG#CAG#CAG#CAG#CAG-CAA#GAA pur#GGCCTG#CGG";
+
+sListIntervalles :="Normal&nbsp;?&nbsp;33<br>Intermédiaire&nbsp;34–89<br><b>Mutation&nbsp;?&nbsp;90</b>#Mutation&nbsp;?&nbsp;200#Normal&nbsp;?&nbsp;38<br>Mutation&nbsp;?&nbsp;45#Normal&nbsp;14–31<br>Mutation&nbsp;?&nbsp;35#Normal&nbsp;12–44<br>Mutation&nbsp;?&nbsp;60#Normal&nbsp;?&nbsp;18<br>Mutation&nbsp;?&nbsp;20#Normal&nbsp;?&nbsp;28<br>Mutation&nbsp;?&nbsp;36#Normal&nbsp;25–40<br>Mutation&nbsp;?&nbsp;49#Normal&nbsp;?&nbsp;200<br>Mutation&nbsp;?&nbsp;250#Normal&nbsp;3–14<br>Mutation&nbsp;?&nbsp;650#Normal&nbsp;?&nbsp;44<br>Prémutation&nbsp;55–200<br>Mutation&nbsp;>&nbsp;200";
+
+sListTransmission :="AR#AR#AD#AD#AD#AD#AD#AD#AD#AD#XL";
+
+sListRef :="HAS volet 1 2024#HAS volet 1 2024<br>Dellergot et al., 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#Lefo et al., 2024#Coarelli et al., 2023#HAS volet 3 2025";
+
+/* Initialisation de l'HTML */
+sTB := "<html>";
+sTB := sTB + "<body>";
+sTB := sTB +
+"<table border=""2"" style=""border-collapse:collapse;margin:auto;font-family:Arial;font-size:10px;"">";
+
+/* Montage headers */
+sTB := sTB + "<tr>";
+iHead := 1;
+WHILE NumEntries(subHead,"#") >= iHead DO
+   sTB := sTB +
+      "<td style=""background-color:#f2f2f2;padding:6px;text-align:center;font-weight:bold;"">" +
+      Entry(iHead,subHead,"#") +
+      "</td>";
+   iHead := iHead + 1;
+DONE;
+sTB := sTB + "</tr>";
+
+/* Montage des lignes */
+iRow := 1;
+WHILE NumEntries(sListMaladie,"#") >= iRow DO
+
+   sTB := sTB + "<tr>";
+
+   sTB := sTB + "<td><i>" + Entry(iRow,sListMaladie,"#") + "</i></td>";
+   sTB := sTB + "<td>" + Entry(iRow,sListGene,"#") + "</td>";
+   sTB := sTB + "<td>" + Entry(iRow,sListMotifs,"#") + "</td>";
+   sTB := sTB + "<td>" + Entry(iRow,sListIntervalles,"#") + "</td>";
+   sTB := sTB + "<td>" + Entry(iRow,sListTransmission,"#") + "</td>";
+   sTB := sTB + "<td>" + Entry(iRow,sListRef,"#") + "</td>";
+
+   sTB := sTB + "</tr>";
+
+   iRow := iRow + 1;
+DONE;
+
+sTB := sTB + "</table>" + "</body>" + "</html>";
+
+RETURN sTB;
+}
