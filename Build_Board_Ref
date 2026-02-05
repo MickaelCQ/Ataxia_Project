@@ -1,64 +1,99 @@
-{:
-/* Mickael – CHU NÎMES - 05/02/2026 -TABLEAU DES RÉFÉRENCES – MALADIES À EXPANSIONS ATAXIES*/
+{:/* Mickael – CHU NIMES - 05/02/2026 -TABLEAU DES RÉFÉRENCES – MALADIES À EXPANSIONS ATAXIES*/
 
 STRING sTB, subHead;
 STRING sListMaladie, sListGene, sListMotifs;
 STRING sListIntervalles, sListTransmission, sListRef;
+STRING sNbsp, sLt, sGt, sLe, sGe;
 INTEGER iHead, iRow;
+
+/* CARACTÈRES SPÉCIAUX */
+sNbsp := "&nbsp;"; 
+sLt   := "&lt;";
+sGt   := "&gt;";
+sLe   := "&le;";
+sGe   := "&ge;";
 
 /* HEADERS*/
 subHead :="Maladie#Gène#Motif(s)<br>Pathogène(s)#Intervalles#Transmission*#Référence(s)";
 
 /* ROWS*/
 sListMaladie :="Friedreich#CANVAS#SCA 1#SCA 2#SCA 3#SCA 6#SCA 7#SCA 17#SCA 27B#SCA 36#FXTAS";
-
 sListGene :="FXN#RFC1#ATXN1#ATXN2#ATXN3#CACNA1A#ATXN7#TBP#FGF14#NOP56#FMR1";
+sListMotifs :="GAA#AAGGG<br>AAAGG<br>ACAGG<br>AGGGC<br>Maori**#CAG#CAG#CAG#CAG#CAG#CAG-CAA#GAA pur#GGCCTG#CGG";
 
-sListMotifs := "GAA#AAGGG<br>AAAGG<br>ACAGG<br>AGGGC<br>Maori**#CAG#CAG#CAG#CAG#CAG#CAG-CAA#GAA pur#GGCCTG#CGG";
+/* Locus (faire attention ordre strict des locus)*/
+/*FXN*/
+sListIntervalles :="Normal:" + sNbsp + sLe + sNbsp + "33<br>Intermédiaire:" + sNbsp + "34–89<br><b>Mutation:" + sNbsp + sGe + sNbsp + "90</b>" 
 
-sListIntervalles :="Normal&nbsp;?&nbsp;33<br>Intermédiaire&nbsp;34–89<br><b>Mutation&nbsp;?&nbsp;90</b>#Mutation&nbsp;?&nbsp;200#Normal&nbsp;?&nbsp;38<br>Mutation&nbsp;?&nbsp;45#Normal&nbsp;14–31<br>Mutation&nbsp;?&nbsp;35#Normal&nbsp;12–44<br>Mutation&nbsp;?&nbsp;60#Normal&nbsp;?&nbsp;18<br>Mutation&nbsp;?&nbsp;20#Normal&nbsp;?&nbsp;28<br>Mutation&nbsp;?&nbsp;36#Normal&nbsp;25–40<br>Mutation&nbsp;?&nbsp;49#Normal&nbsp;?&nbsp;200<br>Mutation&nbsp;?&nbsp;250#Normal&nbsp;3–14<br>Mutation&nbsp;?&nbsp;650#Normal&nbsp;?&nbsp;44<br>Prémutation&nbsp;55–200<br>Mutation&nbsp;>&nbsp;200";
+/*CANVAS*/
++ "#Mutation:" + sNbsp + sGt + sNbsp + "<b>200</b><br><b>Mutation:" + sNbsp + sGt + sNbsp + "500<br>Mutation:" + sNbsp + "n<br>Mutation:" + sNbsp + "n</b><br>Voir ci-dessous"
+
+/*SCA1*/
++ "#Normal:" + sNbsp + "6–38<br>Normal:" + sNbsp + "39–44 avec interruption<br><b>Mutation</b> pénétrance complète:<br><b>39–44 sans interruption<br>" + sGe + sNbsp + "45</b>"
+
+/*SCA2*/
++ "#Normal:" + sNbsp + "14–31<br>Intermédiaire:" + sNbsp + "32–34<br><b>Mutation:" + sNbsp + sGe + sNbsp + "35</b>"
+
+/*SCA3*/
++ "#Normal:" + sNbsp + "12–44<br>Intermédiaire:" + sNbsp + "45–59<br><b>Mutation:" + sNbsp + sGe + sNbsp + "60</b>"
+
+/*SCA6*/
++ "#Normal:" + sNbsp + sLe + sNbsp + "18<br><b>Mutation</b> pénétrance <b>IN</b>complète:" + sNbsp + "<b>19<br>Mutation</b> pénétrance complète:<b>" + sNbsp + sGe + sNbsp + "20</b>"
+
+/*SCA7*/
++ "#Normal:" + sNbsp + "4–19<br>Intermédiaire:" + sNbsp + "28–33<b><br>Mutation</b> pénétrance <b>IN</b>complète:<b>" + sNbsp + "34–35<br>Mutation</b> pénétrance complète:<b>" + sNbsp + sGe + sNbsp + "36</b>"
+
+/*SCA17*/
++ "#Normal:" + sNbsp + "25–40<br><b>Mutation</b> pénétrance <b>IN</b>complète:" + sNbsp + "<b>41–48<br>Mutation</b> pénétrance complète:<b>" + sNbsp + sGe + sNbsp + "49</b>"
+
+/*SCA27B*/
++ "#Normal:" + sNbsp + sLt + sNbsp + "200<br>Intermédiaire:" + sNbsp + "200–249<br><b>Mutation</b> pénétrance <b>IN</b>complète:<b>" + sNbsp + "250–300</b><br><b>Mutation</b> pénétrance complète:<b>" + sNbsp + sGt + sNbsp + "30  </b>"
+
+/*SCA36*/
++ "#Normal:" + sNbsp + "3–14<br><b>Mutation:" + sNbsp + sGe + sNbsp + "650</b>"
+
+/*FXTAS*/
++ "#Normal:" + sNbsp + "5–44<br>Intermédiaire:" + sNbsp + "45–54<br><b>Prémutation associée à FXTAS:" + sNbsp + "55–200</b><br>Mutation associée FXS:" + sNbsp + sGt + sNbsp + "200";
 
 sListTransmission :="AR#AR#AD#AD#AD#AD#AD#AD#AD#AD#XL";
 
-sListRef :="HAS volet 1 2024#HAS volet 1 2024<br>Dellergot et al., 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#Lefo et al., 2024#Coarelli et al., 2023#HAS volet 3 2025";
+sListRef :=
+"HAS volet 1 2024#HAS volet 1 2024<br>Dellergot et al., 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#HAS volet 1 2024#Lefo et al., 2024#Coarelli et al., 2023#HAS volet 3 2025";
 
-/* Initialisation de l'HTML */
-sTB := "<html>";
-sTB := sTB + "<body>";
-sTB := sTB +
-"<table border=""2"" style=""border-collapse:collapse;margin:auto;font-family:Arial;font-size:10px;"">";
+sTB := "<html>" + "<body>" + "<table border=""2"" style=""border-collapse:collapse;margin:auto;font-family:Arial;font-size:8px;"">";
 
 /* Montage headers */
 sTB := sTB + "<tr>";
 iHead := 1;
 WHILE NumEntries(subHead,"#") >= iHead DO
    sTB := sTB +
-      "<td style=""background-color:#f2f2f2;padding:6px;text-align:center;font-weight:bold;"">" +
-      Entry(iHead,subHead,"#") +
-      "</td>";
+      "<td style=""background-color:#f2f2f2;padding:8px 10px;text-align:center;vertical-align:middle;font-weight:bold;line-height:1.4;"">" + Entry(iHead,subHead,"#") +"</td>";
    iHead := iHead + 1;
 DONE;
-sTB := sTB + "</tr>";
 
 /* Montage des lignes */
 iRow := 1;
 WHILE NumEntries(sListMaladie,"#") >= iRow DO
 
    sTB := sTB + "<tr>";
-
-   sTB := sTB + "<td><i>" + Entry(iRow,sListMaladie,"#") + "</i></td>";
-   sTB := sTB + "<td>" + Entry(iRow,sListGene,"#") + "</td>";
-   sTB := sTB + "<td>" + Entry(iRow,sListMotifs,"#") + "</td>";
-   sTB := sTB + "<td>" + Entry(iRow,sListIntervalles,"#") + "</td>";
-   sTB := sTB + "<td>" + Entry(iRow,sListTransmission,"#") + "</td>";
-   sTB := sTB + "<td>" + Entry(iRow,sListRef,"#") + "</td>";
-
+   sTB := sTB + "<td style=""padding:3px 5px;text-align:center;vertical-align:middle;line-height:1.3;"">" + Entry(iRow,sListMaladie,"#") + "</td>";
+   sTB := sTB + "<td style=""padding:3px 5px;text-align:center;vertical-align:middle;line-height:1.3;""><i>" + Entry(iRow,sListGene,"#") + "</i></td>";
+   sTB := sTB + "<td style=""padding:3px 5px;text-align:center;vertical-align:middle;line-height:1.3;"">" + Entry(iRow,sListMotifs,"#") + "</td>";
+   sTB := sTB + "<td style=""padding:3px 5px;text-align:center;vertical-align:middle;line-height:1.3;"">" + Entry(iRow,sListIntervalles,"#") + "</td>";
+   sTB := sTB + "<td style=""padding:3px 5px;text-align:center;vertical-align:middle;line-height:1.3;"">" + Entry(iRow,sListTransmission,"#") + "</td>";
+   sTB := sTB + "<td style=""padding:3px 5px;text-align:center;vertical-align:middle;line-height:1.3;"">" + Entry(iRow,sListRef,"#") + "</td>";
    sTB := sTB + "</tr>";
 
    iRow := iRow + 1;
 DONE;
 
-sTB := sTB + "</table>" + "</body>" + "</html>";
+sTB := sTB + "</table>";
 
+sTB := sTB +
+"<b>** Pathogène :</b> = (AAAGG)10–25(AAGGG)<sup>exp</sup>(AAAGG)4–6<br>" +
+"<b>* Transmission :</b> AR : autosomique récessive, AD : autosomique dominante, XL : liée à l’X<br>" +
+"<b>Références :</b> Haute Autorité de Santé – mutation détection d’expansion, volets 1 et 3 (2024 et 2025)";
+
+sTB := sTB + "</body></html>";
 RETURN sTB;
 }
