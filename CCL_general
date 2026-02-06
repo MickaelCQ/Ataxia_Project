@@ -1,344 +1,245 @@
-{:/* CQM--CHU NIMES -- 20/01/2026 TABLEAU VARIANT(S) -- CONCLUSION(S) ATAXIE*/
-
-STRING sTB, sHd, sVName, sClass, sRef, sCcl ;
-STRING sExp1, sExp2, ExpAl1, ExpAl2, sAl1, sAl2, sMot1, sMot2 ;
-STRING sPhysio, seuilP, Interrup ;
-STRING RFC1c1, RFC1c2, RFC1c3, RFC1c4, RFC1c5, sRef1, sRef2;
-INTEGER iClass0, iClass1, iClass2, iHd, iBody,iExp1, iExp2, iSeuil;
-LOGICAL bPathoA1, bPathoA2;
+{:
+/* CQM -- CHU NÎMES -- 20/01/2026 -- Conclusion génétique ATAXIE */
+STRING sVName, sCcl, sDef;
+STRING sAl1, sAl2, ExpAl1, ExpAl2, Interrup;
+STRING RFC1c1, RFC1c2, RFC1c3, RFC1c4, RFC1c5;
+STRING sMot1, sMot2,  sHTML1, sHTML2;
+INTEGER Ep1, Ep2, EpMax, iBody, iNorm, iClass1, iClass2;
 LOCUSRESULT cLocRes;
 
-STRING sTXT, sHTML1, sHTML2, p1, p2, b1, b2, u1, u2;
-
-sHTML1 := "<font style=""font-family: 'Arial';font-style: Normal;font-weight: normal;font-size: 12px;"">";
-sHTML2 := "</font>";
-p1:= "<p align=""justify"">";
-p2:= "</p>";
-b1:= "<b>";
-b2:= "</b>";
-u1:= "<u>";
-u2:= "</u>";
-
-/* Boucle sur les locus (au 15/01/2026)  */
-iBody := 1;
-cLocRes := .ApproachActivity().Approach.GetLocusResult(?, ?, ?, iBody);
-
-/* Classification des Motifs pour RFC1 */
+/*Expand("Action",.Id,Chr(123) + "<BB_ACMG_PM1" + Chr(125) ,?)*/
+/* ---------------- RFC1 ---------------- */
 RFC1c1 := "AAAAG,AAAGG";
 RFC1c2 := "AAAGGG";
 RFC1c3 := "AAGAG,AACGG,AGAGG,AAAAGG,AAGGC,AGGGG,GAAGG,AAAAA,AAAAC,AAACG,AACAG,AAGAC,AAGGT,ACGGG,AGGTG,AAAAAG";
-RFC1c4 := "AGGGC,AAAGG";
-RFC1c5 := "AAGGG,ACAGG,MAORI";
-iClass2 := 0;  iClass1 := 0; sRef1 := ""; sRef2 := "";
+RFC1c4 := "AGGGC,ACAGG,MAORI";
+RFC1c5 := "AAGGG";
 
- sCcl := "";
+sHTML1 := "<font face=""Arial"">";
+sHTML2 := "</font>";
+
+
+sCcl  := "";
+iNorm := 0;
+sDef  := "INTERVENTION / VERIFICATION BIOLOGIQUE : conclusion indéterminée.";
+
+/* ---------------- Boucle locus ---------------- */
+iBody := 1;
+cLocRes := .ApproachActivity().Approach.GetLocusResult(?, ?, ?, iBody);
 
 WHILE cLocRes <> ? DO
-    bPathoA1 := FALSE; bPathoA2 := FALSE;
-    sVName := cLocRes.TestedLocus.Name;
 
-    /* Récupération sécurisée */
-    sAl1   := IfKnownString(cLocRes.GetGeneticResultDetail("Motif_A1", ?).Value);
-    sAl2   := IfKnownString(cLocRes.GetGeneticResultDetail("Motif_A2", ?).Value);
-    ExpAl1 := IfKnownString(cLocRes.GetGeneticResultDetail("AL1", ?).Value);
-    ExpAl2 := IfKnownString(cLocRes.GetGeneticResultDetail("AL2", ?).Value);
+    iClass1 := 0;
+    iClass2 := 0;
+
+    sVName   := cLocRes.TestedLocus.Name;
+    sAl1     := IfKnownString(cLocRes.GetGeneticResultDetail("Motif_A1", ?).Value);
+    sAl2     := IfKnownString(cLocRes.GetGeneticResultDetail("Motif_A2", ?).Value);
+    ExpAl1   := IfKnownString(cLocRes.GetGeneticResultDetail("AL1", ?).Value);
+    ExpAl2   := IfKnownString(cLocRes.GetGeneticResultDetail("AL2", ?).Value);
     Interrup := IfKnownString(cLocRes.GetGeneticResultDetail("INTERRUPTION", ?).Value);
 
-    /* Conversion en entier pour conditions */
-    iExp1 := StringToInteger(ExpAl1);
-    iExp2 := StringToInteger(ExpAl2);
+    Ep1 := StringToInteger(ExpAl1);
+    Ep2 := StringToInteger(ExpAl2);
 
-    /*sCcl := sCcl + Expand("Action",.Id,Chr(123) + "<BB_ATX_FGF14_001" + Chr(125),?) + Chr(13); */
+    /* 1) CAS NON PATHOLOGIQUES */
+   /*A*/ IF (
+           (sVName = "FGF14"   AND Ep1 <= 200 AND Ep2 <= 200) OR (sVName = "TBP"     AND Ep1 <= 40  AND Ep2 <= 40)
+        OR (sVName = "ATXN1"   AND ((Ep1 <= 38 AND Ep2 <= 38) OR ((Ep1 <= 44 AND Ep2 <= 44) AND Interrup = "OUI")))
+        OR (sVName = "ATXN2"   AND Ep1 <= 34 AND Ep2 <= 34)
+        OR (sVName = "ATXN3"   AND Ep1 < 60  AND Ep2 < 60)
+        OR (sVName = "CACNA1A" AND Ep1 < 19  AND Ep2 < 19)
+        OR (sVName = "ATXN7"   AND Ep1 < 34  AND Ep2 < 34)
+        OR (sVName = "FMR1"    AND Ep1 < 45  AND Ep2 < 45)
+        OR (sVName = "FXN"     AND Ep1 < 34  AND Ep2 < 34)
+        OR (sVName = "NOP56"   AND Ep1 < 15  AND Ep2 > 15)) THEN
+        iNorm := iNorm + 1;
+	  ENDIF;
+	 
+	 /* 2) CAS de Pénétrance incomplète */
+	 /*A*/  IF ((sVName = "TBP" AND Ep1 < 49 AND Ep2 < 49 AND Ep1 > 40 AND Ep2 > 40) OR 
+                  (sVName = "CACNA1A" AND Ep1 < 20 AND Ep2 < 20 AND Ep1 >= 19 AND Ep2 >= 19) OR
+                  (sVName = "ATXN7" AND Ep1 < 36 AND Ep2 < 36 AND Ep1 >= 34 AND Ep2 >= 34) OR 
+                  (sVName = "FGF14" AND Ep1 < 300 AND Ep2 < 300 AND Ep1 > 200 AND Ep2 > 200)) THEN
 
-/* ---------------------- Montage de la logique  biologique basée sur la littérature, le génotype pour un locus donné ----------- */
-    IF sVName = "FGF14" THEN
-        sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "GAA"; seuilP := "<200";
-        IF iExp1 < 200 AND iExp2 < 200 THEN
-             sClass := "Non pathogène"; sRef := ""; 
-        ELSE
-             IF iExp1 <= 249 AND iExp2 <= 249 THEN
-                 sClass := "Indéterminé"; sRef := ""; /* BB_ATX_FGF14_001 */
-                 sCcl := sCcl + Expand("Action",.Id, "<BB_ATX_SCA_PC_001" ,?);
-             ELSE
-                 IF iExp1 <= 299 AND iExp2 <= 299 THEN
-                     sClass := "Pathogène"; sRef := "Pénétrance incomplète"; /*BB_ATX_SCA_PI_001 */
-
-                 ELSE
-                     sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
-                 ENDIF;
-             ENDIF;
-         ENDIF;
-     ELSE
-        IF sVName = "TBP" THEN
-             sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<41";
-        IF iExp1 <= 40 AND iExp2 <= 40 THEN 
-             sClass := "Non pathogène"; sRef := "";
-        ELSE
-             IF iExp1 <= 48 AND iExp2 <= 48 THEN
-                  sClass := "Pathogène"; sRef := "Pénétrance incomplète"; /*BB_ATX_SCA_PI_001 */
-             ELSE
-                  sClass := "Pathogène"; sRef := "Pénétrance complète";   /*BB_ATX_SCA_PC_001*/
-             ENDIF;
-        ENDIF;
-
-     ELSE
-        IF sVName = "ATXN1" THEN
-            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<39";
-        IF iExp1 <= 38 AND iExp2 <= 38 THEN
-            sClass := "Non pathogène"; sRef := ""; 
-        ELSE
-            IF iExp1 <= 44 AND iExp2 <= 44 AND Interrup = "OUI" THEN
-                 sClass := "Non pathogène "; sRef := "Allèle instable"; 
-            ELSE
-                 sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
-                  sCcl := sCcl + Expand("Action",.Id,"<BB_ATX_SCA_PC_001",?);
-            ENDIF;
-        ENDIF;
-
-     ELSE
-        IF sVName = "ATXN2" THEN
-            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<32";
-        IF iExp1 < 32 AND iExp2 < 32 THEN
-            sClass := "Non pathogène"; sRef := "";
-        ELSE
-            IF iExp1 <= 34 AND iExp2 <= 34 THEN
-                sClass := "Non pathogène"; sRef := "Allèle instable";
-            ELSE
-                sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
-            ENDIF;
-        ENDIF;
-
-     ELSE
-        IF sVName = "ATXN3" THEN
-            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<45";
-        IF iExp1 < 45 AND iExp2 < 45 THEN
-            sClass := "Non pathogène"; sRef := "";
-        ELSE
-            IF iExp1 < 60 AND iExp2 < 60 THEN
-                sClass := "Non pathogène"; sRef := "Allèle instable";
-            ELSE
-                sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
-            ENDIF;
-        ENDIF;
-
-        ELSE
-    IF sVName = "CACNA1A" THEN /* SCA6 */
-          sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<19";
-    IF iExp1 < 19 AND iExp2 < 19 THEN
-          sClass := "Non pathogène"; sRef := "";
-    ELSE
-        IF iExp1 < 20 AND iExp2 < 20 THEN
-            sClass := "Pathogène"; sRef := "Pénétrance incomplète"; /*BB_ATX_SCA_PI_001 */
-        ELSE
-            sClass := "Pathogène"; sRef := "Pénétrance complète"; /* BB_ATX_SCA_PC_001 */
-        ENDIF;
-    ENDIF;
-
-    ELSE
-        IF sVName = "ATXN7" THEN
-            sMot1 := "CAG"; sMot2 := "CAG"; sPhysio := "CAG"; seuilP := "<29";
-        IF iExp1 < 29 AND iExp2 < 29 THEN
-            sClass := "Non pathogène"; sRef := "";
-        ELSE
-            IF iExp1 < 34 AND iExp2 < 34 THEN
-                sClass := "Non pathogène"; sRef := "Allèle instable";
-            ELSE
-                IF iExp1 < 36 AND iExp2 < 36 THEN
-                    sClass := "Pathogène"; sRef := "Pénétrance incomplète";/* BB_ATX_SCA_PI_001 */
-                ELSE
-                    sClass := "Pathogène"; sRef := "Pénétrance complète";/* BB_ATX_SCA_PC_001 */
-                ENDIF;
-            ENDIF;
-        ENDIF;
-    ELSE
-        IF sVName = "FMR1" THEN
-           sMot1 := "CGG"; sMot2 := "CGG"; sPhysio := "CGG"; seuilP := "<45";
-        IF iExp1 < 45 AND iExp2 < 45 THEN
-           sClass := "Non pathogène"; sRef := "";
-        ELSE
-            IF iExp1 < 55 AND iExp2 < 55 THEN
-                sClass := "Indéterminé"; sRef := "Allèle instable"; /* BB_ATX_FMR_001 à venir compléter */
-            ELSE
-                IF iExp1 <= 200 AND iExp2 <= 200 THEN
-                    sClass := "Pathogène"; sRef := "FMR1 prémutation";  /* BB_ATX_FMR_002 */
-                ELSE
-                    sClass := "Voir conclusion"; sRef := "FMR1 mutation complète"; /* BB_ATX_FMR_003 */
-                ENDIF;
-           ENDIF;
-        ENDIF;
-
-     /* A VERIFIER */ 
-     ELSE
-        IF sVName = "FXN" THEN
-           sMot1 := "GAA"; sMot2 := "GAA"; sPhysio := "GAA"; seuilP := "<34";
-        IF iExp1 < 34 AND iExp2 < 34 THEN
-           sClass := "Non pathogène"; sRef := ""; 
-        ELSE
-           IF (iExp1 >= 34 AND iExp2 < 34) OR (iExp1 < 34 AND iExp2 >= 34) THEN
-                sClass := "Non pathogène"; sRef := "FXN hétérozygote"; /* BB_ATX_FXN_001 */
-           ELSE
-                IF iExp1 < 90 AND iExp2 < 90 AND Interrup = "OUI" THEN
-                    sClass := "Indéterminé"; sRef := "FXN expansions intermédiaires avec interruption "; /* BB_ATX_FXN_002 */
-                ELSE
-                     IF  iExp1 < 90 AND iExp2 < 90 THEN
-                        sClass := "Porteur"; sRef := "FXN autosomique recessif"; 
-                     ELSE
-                        sClass := "Pathogène"; sRef := "FXN pénétrance complète";/* BB_ATX_FXN_003 */
-                     ENDIF;
-                ENDIF;
-           ENDIF;
-         ENDIF;
-      ELSE
-
-         IF sVName = "RFC1" THEN
-             sMot1 := sAl1; sMot2 := sAl2;
-             /* ---------- RFC1 – allèle 1 ---------- */
-             /* AAAGG avec gestion du seuil */
-             IF sMot1 = "AAAGG" THEN
-                IF iExp1 < 500 THEN
-                  iClass1 := 1;
-                  sRef1 := "Cortese et al.,2019.";
-                ELSE
-                  iClass1 := 4;
-           sRef1 := "Scriba et al.,2023";
-        ENDIF;
-    ELSE
-        IF Lookup(sMot1, RFC1c1, ",") > 0 THEN
-            iClass1 := 1; sRef1 := "Cortese et al.,2019";
-      
-        ELSE
-              IF Lookup(sMot1, RFC1c2, ",") > 0 THEN
-                 iClass1 := 2; sRef1 := "Abramzon et al.,2021";
-              ELSE
-                    IF Lookup(sMot1, RFC1c3, ",") > 0 THEN
-                        iClass1 := 3; sRef1 := "Akçimen / Scriba et al.,2023";
-                    ELSE
-                         IF Lookup(sMot1, RFC1c4, ",") > 0 THEN
-                            iClass1 := 4; sRef1 := "Scriba et al.,2023";
-                         ELSE
-                             IF Lookup(sMot1, RFC1c5, ",") > 0 THEN
-                                iClass1 := 5; sRef1 := "Cortese / Beecroft et al.";
-                             ENDIF;
-                         ENDIF;
-                     ENDIF;
-                ENDIF;
-          ENDIF;
-     ENDIF;
-
-     /* ---------- RFC1 – allèle 2 ---------- */
-     /* AAAGG avec gestion du seuil */
-     IF sMot2 = "AAAGG" THEN
-         IF iExp2 < 500 THEN
-             iClass2 := 1;
-             sRef2 := "Cortese et al.,2019";
-         ELSE
-             iClass2 := 4;
-             sRef2 := "Scriba et al.,2023";
-         ENDIF;
-
-     ELSE
-         IF Lookup(sMot2, RFC1c1, ",") > 0 THEN
-            iClass2 := 1; sRef2 := "Cortese et al.,2019";
-
-         ELSE
-              IF Lookup(sMot2, RFC1c2, ",") > 0 THEN
-                 iClass2 := 2; sRef2 := "Abramzon et al.,2021";
-
-              ELSE
-                   IF Lookup(sMot2, RFC1c3, ",") > 0 THEN
-                      iClass2 := 3; sRef2 := "Akçimen / Scriba et al.,2023";
-
-                   ELSE
-                        IF Lookup(sMot2, RFC1c4, ",") > 0 THEN
-                           iClass2 := 4; sRef2 := "Scriba et al.,2023";
-
-                        ELSE
-                             IF Lookup(sMot2, RFC1c5, ",") > 0 THEN
-                                iClass2 := 5; sRef2 := "Cortese / Beecroft et al.";
-                             ENDIF;
-                        ENDIF;
-                   ENDIF;
-               ENDIF;
-           ENDIF;
-     ENDIF;
-
-    /* Deux allèles pathogènes ou likely pathogènes */
-    IF iClass1 >= 4 AND iClass2 >= 4 THEN
-        sClass := "Pathogène";
-        sRef := sRef1 + " / " + sRef2;
-
-    /* Deux VUS */
-    ELSE
-        IF iClass1 = 3 AND iClass2 = 3 THEN
-            sClass := "Indéterminé";
-            sRef := sRef1 + " / " + sRef2;
-
-           /* Deux Non pathogènes ou likely Non pathogènes */
-        ELSE
-            IF iClass1 <= 2 AND iClass2 <= 2 THEN
-               IF iClass1 = 1 AND iClass2 = 1 THEN
-                   sClass := "Non pathogène";
+                  sCcl := sCcl + "<p>" + Expand("Result", .Id,chr(123) + "<BB_ATX_SCA_PI_001" + chr(125), ?);
+                  
+               IF (Ep1 > Ep2 ) THEN 
+                  EpMax := Ep1;
                ELSE
-                   sClass := "Probablement Non pathogène";
+                  EpMax := Ep2;
                ENDIF;
-            sRef := sRef1 + " / " + sRef2;
-    /* Toutes les autres combinaisons */
-    ELSE
-        sClass := "Indéterminé";
-        sRef := sRef1 + " / " + sRef2;
-           ENDIF;
-        ENDIF;
-    ENDIF;
+                  sCcl := Replace(Replace(Replace(sCcl,"N_Exp_I", IntegerToString(Epmax,"%d")),"#Locus_Exp_I#",sVName),"#Locus_I#",sVName);
+		ENDIF;
 
-ELSE
-    sMot1 := "?"; sMot2 := "?"; sPhysio := "?";
-    sClass := "Indéterminé"; sRef := "Locus inconnu";
 
-ENDIF; ENDIF; ENDIF; ENDIF; ENDIF;
-ENDIF; ENDIF; ENDIF; ENDIF; ENDIF;
-   sPhysio := Replace(Replace(sPhysio,"((","("),")n)n",")n"); 
-    
-/* -------------------- Mise en évidence des Allèles pathogènes selon LOCUS et mode de tranmission  ----------- */
+        /* 3) FXN */
+       /*B*/ IF sVName = "FXN" THEN 
 
-iExp1 := StringToInteger(ExpAl1); 
-iExp2 := StringToInteger(ExpAl2); 
+             IF (Ep1 >= 90 AND Ep2 >= 90) THEN      /*Patho CLAIR*/
+                 sCcl := sCcl + Replace(Replace(Expand("Result", .Id,chr(123) + "<BB_ATX_FXN_004" + chr(125), ?),"#N_ExpA_FXN#",ExpAl1),"#N_ExpB_FXN#",ExpAl2); 
 
-iSeuil := StringToInteger(Replace(Replace(SeuilP,"<",""),">",""));
+                 ELSE IF (Ep1 >= 34 AND Ep1 <= 89 AND Ep2 >= 34 AND Ep2 <= 89) THEN /*Indéterminé */
+            	     sCcl := sCcl + Replace(Replace(Expand("Result",.Id,chr(123) + "<BB_ATX_FXN_003" + chr(125), ?),"#N_IntA_FXN#",ExpAl1),"#N_IntB_FXN#",ExpAl2);
+                       
+        		     ELSE IF ((Ep1 < 34 AND Ep2 >= 34 AND Ep2 < 90) OR (Ep2 < 34 AND Ep1 >= 34 AND Ep1 < 90)) THEN /*Porteur hétérozygote */ 
 
-/* Dominant donc mise en évidence l’allèle le plus pathogène */
+                             IF (Ep1 < 34 AND Ep2 >= 34 AND Ep2 < 90) THEN
+                                 sCcl := sCcl + Replace(Replace(Expand("Result", .Id, chr(123) + "<BB_ATX_FXN_001" + chr(125), ?),"#N_Int_FXN#",ExpAl2),"#N_Rep_FXN#",ExpAl1); 
+                             ELSE
+                                 sCcl := sCcl + Replace(Replace(Expand("Result", .Id, chr(123) + "<BB_ATX_FXN_001" + chr(125), ?),"#N_Int_FXN#",ExpAl1),"#N_Rep_FXN#",ExpAl2); 
+                             ENDIF;
 
-IF sClass = "Pathogène" AND INDEX("RFC1,FXN", sVName) = 0 THEN
-    IF iExp1 > iSeuil OR iExp2 > iSeuil THEN
-        IF iExp1 > iExp2 THEN 
-           bPathoA1 := TRUE;
-        ELSE IF iExp2 > iExp1 THEN 
-           bPathoA2 := TRUE;
-    ELSE
-        bPathoA1 := TRUE;
-        bPathoA2 := TRUE;
-        ENDIF;
-        ENDIF;
-    ENDIF;
+            		     /*sCcl := sCcl + Expand("Result", .Id, chr(123) + "<BB_ATX_FXN_001" + chr(125), ?);*/ 
 
-/* Récessivté donc mise en évidence les deux allèles si la classe est Pathogène */
-ELSE 
-    IF sClass = "Pathogène" AND INDEX("RFC1,FXN,CANVAS", sVName) >0 THEN
-        IF iExp1 > iSeuil AND iExp2 > iSeuil THEN
-        bPathoA1 := TRUE;
-        bPathoA2 := TRUE;
-        ENDIF;
-    ENDIF;
-ENDIF;
+        			     ELSE IF ((Ep1 >= 34 AND Ep1 < 90 AND Ep2 >= 90) OR (Ep2 >= 34 AND Ep2 < 90 AND Ep1 >= 90)) THEN  /*Voir Conclusion avec et sans interruption */ 
 
-  sCcl := sCcl +  p1 + "Résultats complets du XXXX :" + p2;
+                                IF (Ep1 >= 34 AND Ep1 < 90 AND Ep2 >= 90) THEN
+            			     sCcl := sCcl + Replace(Replace(Expand("Result", .Id, chr(123) + "<BB_ATX_FXN_002"+ chr(125), ?),"#N_Int_FXN#",ExpAl1),"#N_Exp_FXN#",ExpAl2);
+                                ELSE
+                                   sCcl := sCcl + Replace(Replace(Expand("Result", .Id, chr(123) + "<BB_ATX_FXN_002"+ chr(125), ?),"#N_Int_FXN#",ExpAl2),"#N_Exp_FXN#",ExpAl1);    
+                                ENDIF;       
+                        ELSE
+                             sCcl := sCcl + "" + chr(13);
 
-    /* Passage au locus suivant */
-    iBody := iBody + 1;
-    cLocRes := .ApproachActivity().Approach.GetLocusResult(?, ?, ?, iBody);
+        			     ENDIF;/*FXN002 */
+			         ENDIF;/*FXN001*/
+                 ENDIF;/*FXN003*/
+            ENDIF;/*FXN004*/
+		    ENDIF; /* FXN*/
+              
+			
+       /* 4) FMR1 – FXTAS */
+    /*C*/   IF sVName = "FMR1" THEN
 
-DONE;
+            IF (Ep1 < 55 AND Ep2 < 55 AND Ep1 >= 45 AND Ep2 >= 45) THEN /* FXTAS Exclus */
+                 sCcl := sCcl + Expand("Result", .Id, chr(123)+ "<BB_ATX_FMR1_001" + chr(125), ?); 
 
-RETURN sHTML1 + sCCL+ sHTML2;
+                  ELSE IF (Ep1 <= 200 AND Ep2 <= 200 AND Ep1 >= 55 AND Ep2 >= 55) THEN /* FXTAS */
+                      sCcl := sCcl + Expand("Result", .Id, chr(123)+ "<BB_ATX_FMR1_002" + chr(125), ?); 
+
+                      ELSE IF (Ep1 > 200 AND Ep2 > 200) THEN /* FXTAS Improbable*/
+                           sCcl := sCcl + Expand("Result", .Id, chr(123) + "<BB_ATX_FMR1_003" + chr(125), ?); 
+                      ENDIF;/*FMR003*/
+                  ENDIF; /*FMR002*/
+            ENDIF; /*FMR001*/
+            ENDIF;
+			
+    /*5) RFC1 – CANVAS (AR) */
+    /*D */ IF sVName = "RFC1" THEN
+             sMot1 := sAl1; sMot2 := sAl2;
+
+        /* ---- Allèle 1 ---- */
+             IF sMot1 = "AAAGG" THEN
+                  IF Ep1 < 500 THEN 
+				      iClass1 := 1; 
+				  ELSE 
+				      iClass1 := 4; 
+				  ENDIF; /* Seuil motif AAAGG*/
+                      
+				  ELSE IF Lookup(sMot1, RFC1c1, ",") > 0 THEN 
+				       iClass1 := 1;
+					   
+                       ELSE IF Lookup(sMot1, RFC1c2, ",") > 0 THEN 
+						    iClass1 := 2;
+                               
+							ELSE IF Lookup(sMot1, RFC1c3, ",") > 0 THEN 
+							     iClass1 := 3;
+                                    
+							     ELSE IF Lookup(sMot1, RFC1c4, ",") > 0 THEN 
+									  iClass1 := 4;
+										 
+                                      ELSE IF Lookup(sMot1, RFC1c5, ",") > 0 THEN 
+										   iClass1 := 5;
+                                      ENDIF; /* Allèle 1 Classe 5*/
+                                 ENDIF; /* Allèle 1 Classe 4*/
+							ENDIF; /* Allèle 1 Classe 3*/
+                       ENDIF; /* Allèle 1 Classe 2*/
+                   ENDIF; /* Allèle 1 Classe 2*/
+			 ENDIF; /* Allèle 1 */
+			 
+			 
+			 
+        /* ---- Allèle 2 ---- */
+             IF sMot2 = "AAAGG" THEN
+                  IF Ep2 < 500 THEN 
+				      iClass1 := 1; 
+				  ELSE 
+				      iClass1 := 4; 
+				  ENDIF; /* Seuil motif AAAGG*/
+                      
+				  ELSE IF Lookup(sMot2, RFC1c1, ",") > 0 THEN 
+                              iClass1 := 1;
+					   
+                              ELSE IF Lookup(sMot2, RFC1c2, ",") > 0 THEN 
+                                    iClass1 := 2;
+
+                                    ELSE IF Lookup(sMot2, RFC1c3, ",") > 0 THEN 
+                                          iClass1 := 3;
+ 
+                                          ELSE IF Lookup(sMot2, RFC1c4,",") > 0 THEN 
+									  iClass1 := 4;
+										 
+                                      ELSE IF Lookup(sMot2, RFC1c5, ",") > 0 THEN 
+										   iClass1 := 5;
+                                      ENDIF; /* Allèle 2 Classe 5*/
+                                 ENDIF; /* Allèle 2 Classe 4*/
+							ENDIF; /* Allèle 2 Classe 3*/
+                       ENDIF; /* Allèle 2 Classe 2*/
+                   ENDIF; /* Allèle 2 Classe 1*/
+			 ENDIF; /* Allèle 2 */	   
+		ENDIF; /*END RFC1*/
+	
+        /* ---- Combinaisons, détermination de la classe vs génotype ---- */
+              IF (iClass1 = 5 AND iClass2 = 5) THEN
+                  sCcl := sCcl + Expand("Result", .Id, chr(123) + "<BB_ATX_RFC1_001" + chr(125), ?);
+
+                  ELSE IF (iClass1 = 4 AND iClass2 = 4 AND sMot1 = sMot2) THEN
+                       sCcl := sCcl + Expand("Result", .Id, chr(123) + "<BB_ATX_RFC1_002" + chr(125), ?);
+
+                       ELSE IF (iClass1 = 4 AND iClass2 = 4) THEN
+                           sCcl := sCcl + Expand("Result", .Id, chr(123) + "<BB_ATX_RFC1_003" + chr(125), ?);
+
+                           ELSE IF ((iClass1 = 5 AND iClass2 < 4) OR (iClass2 = 5 AND iClass1 < 4)) THEN
+                               sCcl := sCcl + Expand("Result", .Id,chr(123) + "<BB_ATX_RFC1_004" + chr(125), ?);
+
+                               ELSE IF (iClass1 = 3 AND iClass2 = 3) THEN
+                                   sCcl := sCcl + Expand("Result", .Id, chr(123) + "<BB_ATX_RFC1_005" + chr(125), ?);
+
+                                   ELSE IF (iClass1 <= 2 AND iClass2 <= 2) THEN
+                                        iNorm := iNorm + 1;
+                                   ENDIF; /* Non Pathogène */
+							   ENDIF; /* Classe 3 VUS */
+						   ENDIF; /* Patho problablement */
+                       ENDIF; /* Patho 2 Motifs hors classe 5*/
+				  ENDIF; /* Patho 2 Motifs hors classe 5 identique*/
+			  ENDIF; /* Classe 5 strict */
+        
+
+    /* 6) SCA DOMINANTES -- PC */
+         IF ((sVName = "FGF14"   AND Ep1 >= 300 AND Ep2 >= 300) OR (sVName = "TBP"     AND Ep1 > 48  AND Ep2 > 48)OR (sVName = "ATXN1"   AND Ep1 > 38  AND Ep2 > 38)
+            OR (sVName = "ATXN2"   AND Ep1 > 34  AND Ep2 > 34)  OR (sVName = "ATXN3"   AND Ep1 >= 60 AND Ep2 >= 60) OR (sVName = "CACNA1A" AND Ep1 >= 20 AND Ep2 >= 20)
+            OR (sVName = "ATXN7"   AND Ep1 >= 36 AND Ep2 >= 36) OR (sVName = "NOP56"   AND Ep1 >= 650 AND Ep2 >= 650))
+         THEN
+            IF Ep1 > Ep2 THEN
+               sCcl := sCcl + Replace(Replace(Expand("Result", .Id, chr(123) + "<BB_ATX_SCA_PC_001" + chr(125), ?),"#N_Exp#",ExpAl1),"#Name_Exp#",sVName);
+            ELSE
+               sCcl := sCcl + Replace(Replace(Expand("Result", .Id, chr(123) + "<BB_ATX_SCA_PC_001" + chr(125), ?),"#N_Exp#",ExpAl2),"#Name_Exp#",sVName);
+            ENDIF;
+
+         ENDIF;
+
+           iBody := iBody + 1;
+           cLocRes := .ApproachActivity().Approach.GetLocusResult(?, ?, ?, iBody);
+     DONE;
+     IF iNorm = 11 THEN 
+       sCcl := "Au total, l'analyse des 10 loci impliqués dans les ataxies à expansions (voir tableau ci-dessus) ne permet pas d'apporter un élément génétique causal à la pathologie";
+     ENDIF;
+
+    /* 7) VUS NOP56 */ 
+       IF (sVName = "NOP56" AND Ep1 >=15 AND Ep1 < 650 AND Ep2 >= 15 AND Ep2 < 650) THEN
+           sCcl := sCcl + "Signification NOP56 indéterminée, profil intermédiaire, voir BIO" ;
+       ENDIF;
+
+RETURN sHTML1 + Replace(Replace(sCcl,"#BR_S#","<b>"),"#BR_E#","</b>") + sHTML2 ;
 }
-
-
